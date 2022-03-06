@@ -1,27 +1,32 @@
 /*
- * File: HD44780_I2C_lcd.c
+ * File: HD44780_I2C_lcd.cpp
  * Description: 
- * HD44780-based character LCD 16x02 I2C(PCF8574) library source file
+ * HD44780-based character LCD 16x02 I2C(PCF8574) library source file for RPI
  * Author: Gavin Lyons.
- * Complier: xc32 v4.00 compiler
- * PIC: PIC32CM1216CM00032
- * IDE:  MPLAB X v6.00 , Harmony V3
+ * Compiler: C++ g++ (Raspbian 8.3.0-6+rpi1) 8.3.0
+ * Tested: Raspbian 10, armv7l Linux 5.10.63-v7+ , RPI M3B Rev 1.2
  * Created : Feb 2022
  * Description: See URL for full details.
- * URL: https://github.com/gavinlyonsrepo/pic_32_projects
+ * URL: https://github.com/gavinlyonsrepo/HD44780_LCD_RPI
  */
 
 // Section : Includes
-#include "HD44780_LCD_RPI.h"
+#include "HD44780_LCD.h"
+
+// Section : constructor
+
+HD44780LCD  :: HD44780LCD()
+{}
 
 // Section : Functions
 
-//  Func Desc: Send data byte to  lcd
+//  Func Desc: Send data byte to  LCD via I2C
 //  Param1: data byte
 void HD44780LCD::PCF8574_LCDSendData(unsigned char data) {
 	unsigned char data_l, data_u;
-	uint8_t data_I2C[4];
-
+	char data_I2C[4];
+	int txCount=0;
+	
 	data_l = (data << 4)&0xf0; //select lower nibble by moving it to the upper nibble position
 	data_u = data & 0xf0; //select upper nibble
 	data_I2C[0] = data_u | (DATA_BYTE_ON & LCDBACKLIGHT); //enable=1 and rs =1 1101  YYYY-X-en-X-rs
@@ -29,7 +34,18 @@ void HD44780LCD::PCF8574_LCDSendData(unsigned char data) {
 	data_I2C[2] = data_l | (DATA_BYTE_ON & LCDBACKLIGHT); //enable=1 and rs =1 1101  YYYY-X-en-X-rs
 	data_I2C[3] = data_l | (DATA_BYTE_OFF &  LCDBACKLIGHT); //enable=0 and rs =1 1001 YYYY-X-en-X-rs
 	
-	bcm2835_i2c_write(data_I2C, 4);
+	// bcm2835I2CReasonCodes , BCM2835_I2C_REASON_OK 0x00 = Success
+	uint8_t ReasonCodes = bcm2835_i2c_write(data_I2C, 4);
+	
+	while(ReasonCodes != 0)  
+	{
+		if (DEBUGON == true)
+		{
+			printf("I2C Error bcm2835I2CReasonCodes %d : %d \n", ReasonCodes,txCount++);
+		}
+		ReasonCodes = bcm2835_i2c_write(data_I2C, 4);
+		if(ReasonCodes == 0) break;
+	}
 
 }
 
@@ -38,15 +54,29 @@ void HD44780LCD::PCF8574_LCDSendData(unsigned char data) {
 
 void HD44780LCD::PCF8574_LCDSendCmd(unsigned char cmd) {
 	unsigned char cmd_l, cmd_u;
-	uint8_t cmd_I2C[4];
-
+	char cmd_I2C[4];
+	int txCount=0;
+		
 	cmd_l = (cmd << 4)&0xf0; //select lower nibble by moving it to the upper nibble position
 	cmd_u = cmd & 0xf0; //select upper nibble
 	cmd_I2C[0] = cmd_u | (CMD_BYTE_ON & LCDBACKLIGHT); // YYYY-1100 YYYY-led-en-rw-rs ,enable=1 and rs =0
 	cmd_I2C[1] = cmd_u | (CMD_BYTE_OFF & LCDBACKLIGHT); // YYYY-1000 YYYY-led-en-rw-rs ,enable=0 and rs =0
 	cmd_I2C[2] = cmd_l | (CMD_BYTE_ON & LCDBACKLIGHT); // YYYY-1100 YYYY-led-en-rw-rs ,enable=1 and rs =0
 	cmd_I2C[3] = cmd_l | (CMD_BYTE_OFF & LCDBACKLIGHT); // YYYY-1000 YYYY-led-en-rw-rs ,enable=0 and rs =0
-	bcm2835_i2c_write(cmd_I2C, 4);
+	
+	// bcm2835I2CReasonCodes, BCM2835_I2C_REASON_OK 0x00 = Success
+	uint8_t ReasonCodes = bcm2835_i2c_write(cmd_I2C, 4);
+
+	while(ReasonCodes != 0)
+	{
+		if (DEBUGON == true)
+		{
+			printf("I2C Error bcm2835I2CReasonCodes %d : %d \n", ReasonCodes,txCount++);
+			bcm2835_delay(100);
+		}
+		ReasonCodes = bcm2835_i2c_write(cmd_I2C, 4);
+		if(ReasonCodes == 0) break;
+	}
 }
 
 // Func Desc: Clear a line by writing spaces to every position
@@ -178,7 +208,7 @@ void HD44780LCD::PCF8574_LCDGOTO(uint8_t row, uint8_t col) {
 			break;
 
 		default:
-			__NOP();
+			asm ("nop");
 	}
 }
 
@@ -201,27 +231,39 @@ void HD44780LCD::PCF8574_LCDBackLightSet(bool OnOff)
 	 OnOff ? (LCDBACKLIGHT = LCD_BACKLIGHTON_MASK) : (LCDBACKLIGHT = LCD_BACKLIGHTOFF_MASK);
 }
 
+// Func Desc: Turn DEBUG mode on 
+// Param1: passed bool True = debug on , false = debug off
+// Note: prints out printf statements, if ON and if errors occur
+void HD44780LCD::PCF8574_DebugSet(bool OnOff)
+{
+	 OnOff ? (DEBUGON  = true) : (DEBUGON  = false);
+}
 
+// Func Desc: Setup I2C settings 
 void HD44780LCD::PCF8574_LCD_I2C_ON()
 {
 	// Start I2C operations. Forces RPi I2C pins P1-03 (SDA) and P1-05 (SCL) 
 	// to alternate function ALT0, which enables those pins for I2C interface. 
 	if (!bcm2835_i2c_begin())
 	{
-		printf("Error: Cannot start I2C\n");
+		if (DEBUGON == true)
+		{
+			printf("LCD Error: Cannot start bcm2835 I2C \n");
+		}
 		return;
 	}
-	bcm2835_i2c_setSlaveAddress(SSD1306_ADDR);  //i2c address
-	bcm2835_i2c_setClockDivider(BCM2835_I2C_CLOCK_DIVIDER_626);
+	//i2c address
+	bcm2835_i2c_setSlaveAddress(LCD_SLAVE_ADDRESS_I2C);  
 	
-	//(1) BCM2835_I2C_CLOCK_DIVIDER_626  ：622 = 2.504us = 399.3610 kHz
+	// (1) BCM2835_I2C_CLOCK_DIVIDER_626  ：622 = 2.504us = 399.3610 kHz
 	//Clock divided is based on nominal base clock rate of 250MHz
+	bcm2835_i2c_setClockDivider(BCM2835_I2C_CLOCK_DIVIDER_626);
 	
 	// (2) or use set_baudrate instead of clockdivder
 	//bcm2835_i2c_set_baudrate(100000); //100k baudrate
 }
 
-// Desc: End I2C operations. 
+// Func Desc: End I2C operations. 
 // I2C pins P1-03 (SDA) and P1-05 (SCL) 
 // are returned to their default INPUT behaviour. 
 void HD44780LCD::PCF8574_LCD_I2C_OFF(void)

@@ -1,29 +1,29 @@
 /*
- * File: main.c
+ * File: main.cpp
  * Description: 
  * This file contains the "main" function for  project, a set of test sequence
  * to test the HD44780 LCD library
  * Author: Gavin Lyons.
- * Complier: xc32 v4.00 compiler
- * PIC: PIC32CM1216CM00032
- * IDE:  MPLAB X v6.00
+ * Compiler: C++ g++ (Raspbian 8.3.0-6+rpi1) 8.3.0
+ * Tested: Raspbian 10, armv7l Linux 5.10.63-v7+ , RPI M3B Rev 1.2
  * Created : Feb 2022
  * Description: See URL for full details.
- * URL: https://github.com/gavinlyonsrepo/pic_32_projects
+ * URL: https://github.com/gavinlyonsrepo/HD44780_LCD_RPI
+ * 
+ * Note: set PCF8574_DebugSet(false) to true in Setup() for debug
  */
 
-// Section: Included Files
+// Section: Included library 
 #include <bcm2835.h>
-#include "HD44780_LCD_RPI.h"
-//#include <time.h>
-#include <stdio.h>
+#include "HD44780_LCD.h"
 
 // Section: Defines
 #define INIT_DELAY 1000
 #define DISPLAY_DELAY_2 2000
 #define DISPLAY_DELAY 5000
 
-HD44780_LCD_RPI myLCD() ; // instantiate  an object
+// Section: Globals
+HD44780LCD myLCD; // instantiate an object
 
 // Section: Function Prototypes
 void Setup(void);
@@ -34,6 +34,7 @@ void gotoTest(void);
 void resetTest(void);
 void customChar(void);
 void backLightTest(void);
+void EndTest(void);
 
 // Section: Main Loop
 
@@ -46,36 +47,39 @@ int main(int argc, char **argv)
 	}
 	
 	Setup();
-
-	while (true) {  
-		HelloWorld();
-		CursorMoveTest();
-		ScrollTest();
-		gotoTest();
-		resetTest();
-		customChar();
-		backLightTest();
-	}
+	
+	HelloWorld();
+	CursorMoveTest();
+	ScrollTest();
+	gotoTest();
+	resetTest();
+	customChar();
+	backLightTest();
 	
 	EndTest();
+	
 	return 0;
-}
+} // END of main
 
 // Section :  Functions
 
 void Setup(void) {
 	printf("LCD Begin\r\n");
+	myLCD.PCF8574_LCD_I2C_ON();
 	bcm2835_delay(INIT_DELAY);
 	myLCD.PCF8574_LCDInit(CURSOR_ON);
 	myLCD.PCF8574_LCDClearScreen();
 	myLCD.PCF8574_LCDBackLightSet(true);
+	myLCD.PCF8574_DebugSet(false); // Set to true to turn on debug mode
 }
 
 void HelloWorld(void) {
+	char teststr1[] = "Hello";
+	char teststr2[] = "World";
 	myLCD.PCF8574_LCDGOTO(1, 0);
-	myLCD.PCF8574_LCDSendString("Hello");
+	myLCD.PCF8574_LCDSendString(teststr1);
 	myLCD.PCF8574_LCDGOTO(2, 0);
-	myLCD.PCF8574_LCDSendString("World"); // Display a string
+	myLCD.PCF8574_LCDSendString(teststr2); // Display a string
 	myLCD.PCF8574_LCDSendChar('!'); // Display a single character
 	bcm2835_delay(DISPLAY_DELAY);
 }
@@ -96,11 +100,12 @@ void ScrollTest(void) {
 }
 
 void gotoTest(void) {
+	char teststr3[] = "Line";
 	myLCD.PCF8574_LCDClearScreen();
 	myLCD.PCF8574_LCDGOTO(1, 10);
 	myLCD.PCF8574_LCDSendChar('A');
 	myLCD.PCF8574_LCDGOTO(2, 2);
-	myLCD.PCF8574_LCDSendString("Line");
+	myLCD.PCF8574_LCDSendString(teststr3);
 	bcm2835_delay(DISPLAY_DELAY);
 }
 
@@ -147,9 +152,10 @@ void customChar(void) {
 
 void backLightTest(void)
 {
+	char teststr4[] = "Back Light";
 	myLCD.PCF8574_LCDBackLightSet(false);
 	myLCD.PCF8574_LCDGOTO(2, 1);
-	myLCD.PCF8574_LCDSendString("Backlight test");
+	myLCD.PCF8574_LCDSendString(teststr4);
 	bcm2835_delay(DISPLAY_DELAY);
 	myLCD.PCF8574_LCDBackLightSet(true);
 	myLCD.PCF8574_LCDClearScreen();
@@ -157,10 +163,11 @@ void backLightTest(void)
 
 void EndTest()
 {
-	myLCD.myLCD.PCF8574_LCDDisplayON(false); //Switch off display
+	myLCD.PCF8574_LCDDisplayON(false); //Switch off display
+	myLCD.PCF8574_LCD_I2C_OFF();
 	bcm2835_close(); // Close the library
 	printf("LCD End\r\n");
 }
 
-// EOF
+// *** EOF ***
 
