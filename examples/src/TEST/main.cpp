@@ -23,18 +23,21 @@
 #define DISPLAY_DELAY 5000
 
 // Section: Globals
-HD44780LCD myLCD; // instantiate an object
+// myLCD(rows , cols , I2C address)
+HD44780LCD myLCD( 2, 16, 0x27); // instantiate an object
 
 // Section: Function Prototypes
-void Setup(void);
-void HelloWorld(void);
-void CursorMoveTest(void);
-void ScrollTest(void);
+void setup(void);
+void helloWorld(void);
+void cursorMoveTest(void);
+void scrollTest(void);
 void gotoTest(void);
+void clearLineTest(void);
 void resetTest(void);
+void writeNumTest(void);
 void customChar(void);
 void backLightTest(void);
-void EndTest(void);
+void endTest(void);
 
 // Section: Main Loop
 
@@ -46,34 +49,35 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	
-	Setup();
+	setup();
 	
-	HelloWorld();
-	CursorMoveTest();
-	ScrollTest();
+	helloWorld();
+	cursorMoveTest();
+	scrollTest();
 	gotoTest();
+	clearLineTest();
 	resetTest();
+	writeNumTest();
 	customChar();
 	backLightTest();
-	
-	EndTest();
+	endTest();
 	
 	return 0;
 } // END of main
 
 // Section :  Functions
 
-void Setup(void) {
+void setup(void) {
 	printf("LCD Begin\r\n");
 	myLCD.PCF8574_LCD_I2C_ON();
 	bcm2835_delay(INIT_DELAY);
-	myLCD.PCF8574_LCDInit(CURSOR_ON);
+	myLCD.PCF8574_LCDInit(LCDCursorTypeOn);
 	myLCD.PCF8574_LCDClearScreen();
 	myLCD.PCF8574_LCDBackLightSet(true);
 	myLCD.PCF8574_DebugSet(false); // Set to true to turn on debug mode
 }
 
-void HelloWorld(void) {
+void helloWorld(void) {
 	char teststr1[] = "Hello";
 	char teststr2[] = "World";
 	myLCD.PCF8574_LCDGOTO(1, 0);
@@ -84,23 +88,23 @@ void HelloWorld(void) {
 	bcm2835_delay(DISPLAY_DELAY);
 }
 
-void CursorMoveTest(void) {
-	myLCD.PCF8574_LCDMoveCursor(MOVE_RIGHT, 2);
+void cursorMoveTest(void) {
+	myLCD.PCF8574_LCDMoveCursor(LCDMoveRight, 2);
 	bcm2835_delay(DISPLAY_DELAY);
-	myLCD.PCF8574_LCDMoveCursor(MOVE_LEFT, 2);
+	myLCD.PCF8574_LCDMoveCursor(LCDMoveLeft, 2);
 }
 
-void ScrollTest(void) {
+void scrollTest(void) {
 	for (uint8_t i = 0; i < 5; i++) {
-		myLCD.PCF8574_LCDScroll(MOVE_RIGHT, 1);
+		myLCD.PCF8574_LCDScroll(LCDMoveRight, 1);
 		bcm2835_delay(DISPLAY_DELAY_2);
 	}
-	myLCD.PCF8574_LCDScroll(MOVE_LEFT, 5);
+	myLCD.PCF8574_LCDScroll(LCDMoveLeft, 5);
 	bcm2835_delay(DISPLAY_DELAY_2);
 }
 
 void gotoTest(void) {
-	char teststr3[] = "Line";
+	char teststr3[] = "Line 2";
 	myLCD.PCF8574_LCDClearScreen();
 	myLCD.PCF8574_LCDGOTO(1, 10);
 	myLCD.PCF8574_LCDSendChar('A');
@@ -109,8 +113,32 @@ void gotoTest(void) {
 	bcm2835_delay(DISPLAY_DELAY);
 }
 
+void clearLineTest(void)
+{
+myLCD.PCF8574_LCDClearLine(2);
+bcm2835_delay(DISPLAY_DELAY_2);
+myLCD.PCF8574_LCDClearLine(1);
+bcm2835_delay(DISPLAY_DELAY_2);
+}
+
 void resetTest(void) {
-	myLCD.PCF8574_LCDResetScreen(CURSOR_BLINK);
+	myLCD.PCF8574_LCDResetScreen(LCDCursorTypeBlink);
+	bcm2835_delay(DISPLAY_DELAY);
+}
+
+void writeNumTest()
+{
+	int numPos = 193;
+	int numNeg = -8582;
+	double myPI = 3.1456;
+	
+	myLCD.PCF8574_LCDGOTO(1, 0);
+	myLCD.print(numPos);
+	myLCD.PCF8574_LCDGOTO(2, 0);
+	myLCD.print(numNeg);
+	myLCD.PCF8574_LCDMoveCursor(LCDMoveRight, 2);
+	myLCD.print(myPI,4);
+	
 	bcm2835_delay(DISPLAY_DELAY);
 }
 
@@ -129,21 +157,22 @@ void customChar(void) {
 	myLCD.PCF8574_LCDClearScreen();
 
 	// Load the CGRAM with the data , custom characters
-	myLCD.PCF8574_LCDCreateCustomChar(0, bell);
+	myLCD.PCF8574_LCDCreateCustomChar(0, bell); // Location 0
 	myLCD.PCF8574_LCDCreateCustomChar(1, note);
 	myLCD.PCF8574_LCDCreateCustomChar(2, clock);
 	myLCD.PCF8574_LCDCreateCustomChar(3, heart);
 	myLCD.PCF8574_LCDCreateCustomChar(4, duck);
 	myLCD.PCF8574_LCDCreateCustomChar(5, check);
 	myLCD.PCF8574_LCDCreateCustomChar(6, cross);
-	myLCD.PCF8574_LCDCreateCustomChar(7, retarrow);
+	myLCD.PCF8574_LCDCreateCustomChar(7, retarrow); // Location 7
 
 	myLCD.PCF8574_LCDGOTO(1, 0);
 
-	// Print out custom characters
+	// Print out custom characters from 
+	// CGRAM locations 0-7
 
 	for (uint8_t i = 0; i < 8; i++) {
-		myLCD.PCF8574_LCDSendData(i);
+		myLCD.PCF8574_LCDPrintCustomChar(i);
 	}
 
 	bcm2835_delay(DISPLAY_DELAY);
@@ -153,7 +182,8 @@ void customChar(void) {
 void backLightTest(void)
 {
 	char teststr4[] = "Back Light";
-	myLCD.PCF8574_LCDBackLightSet(false);
+	// Needs another command/data before it changes Light
+	myLCD.PCF8574_LCDBackLightSet(false); 
 	myLCD.PCF8574_LCDGOTO(2, 1);
 	myLCD.PCF8574_LCDSendString(teststr4);
 	bcm2835_delay(DISPLAY_DELAY);
@@ -161,7 +191,7 @@ void backLightTest(void)
 	myLCD.PCF8574_LCDClearScreen();
 }
 
-void EndTest()
+void endTest()
 {
 	myLCD.PCF8574_LCDDisplayON(false); //Switch off display
 	myLCD.PCF8574_LCD_I2C_OFF();

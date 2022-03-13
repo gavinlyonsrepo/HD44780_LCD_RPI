@@ -62,6 +62,7 @@ install:
 	@echo "[INSTALL HEADERS]"
 	@if ( test ! -d $(PREFIX)/include ) ; then mkdir -p $(PREFIX)/include ; fi
 	@cp -vf  include/HD44780_LCD.h $(PREFIX)/include
+	@cp -vf  include/HD44780_LCD_Print.h $(PREFIX)/include
 	@echo "[DONE!]"
 
 # Uninstall the library
@@ -72,6 +73,7 @@ uninstall:
 
 	@echo "[UNINSTALL HEADERS]"
 	@rm -rvf  $(PREFIX)/include/HD44780_LCD.h
+	@rm -rvf  $(PREFIX)/include/HD44780_LCD_Print.h
 	@echo "[DONE!]"
 
 # clear build files

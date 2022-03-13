@@ -15,8 +15,12 @@
 
 // Section : constructor
 
-HD44780LCD  :: HD44780LCD()
-{}
+HD44780LCD  :: HD44780LCD(uint8_t NumRow, uint8_t NumCol, uint8_t I2Caddress)
+{
+_NumRows = NumRow;
+_NumCols = NumCol;
+_LCDSlaveAddresI2C  = I2Caddress;
+}
 
 // Section : Functions
 
@@ -29,17 +33,17 @@ void HD44780LCD::PCF8574_LCDSendData(unsigned char data) {
 	
 	data_l = (data << 4)&0xf0; //select lower nibble by moving it to the upper nibble position
 	data_u = data & 0xf0; //select upper nibble
-	data_I2C[0] = data_u | (DATA_BYTE_ON & LCDBACKLIGHT); //enable=1 and rs =1 1101  YYYY-X-en-X-rs
-	data_I2C[1] = data_u | (DATA_BYTE_OFF & LCDBACKLIGHT); //enable=0 and rs =1 1001 YYYY-X-en-X-rs
-	data_I2C[2] = data_l | (DATA_BYTE_ON & LCDBACKLIGHT); //enable=1 and rs =1 1101  YYYY-X-en-X-rs
-	data_I2C[3] = data_l | (DATA_BYTE_OFF &  LCDBACKLIGHT); //enable=0 and rs =1 1001 YYYY-X-en-X-rs
+	data_I2C[0] = data_u | (LCD_DATA_BYTE_ON & _LCDBackLight); //enable=1 and rs =1 1101  YYYY-X-en-X-rs
+	data_I2C[1] = data_u | (LCD_DATA_BYTE_OFF & _LCDBackLight); //enable=0 and rs =1 1001 YYYY-X-en-X-rs
+	data_I2C[2] = data_l | (LCD_DATA_BYTE_ON & _LCDBackLight); //enable=1 and rs =1 1101  YYYY-X-en-X-rs
+	data_I2C[3] = data_l | (LCD_DATA_BYTE_OFF &  _LCDBackLight); //enable=0 and rs =1 1001 YYYY-X-en-X-rs
 	
 	// bcm2835I2CReasonCodes , BCM2835_I2C_REASON_OK 0x00 = Success
 	uint8_t ReasonCodes = bcm2835_i2c_write(data_I2C, 4);
 	
 	while(ReasonCodes != 0)  
 	{
-		if (DEBUGON == true)
+		if (_DebugON == true)
 		{
 			printf("I2C Error bcm2835I2CReasonCodes %d : %d \n", ReasonCodes,txCount++);
 		}
@@ -59,17 +63,17 @@ void HD44780LCD::PCF8574_LCDSendCmd(unsigned char cmd) {
 		
 	cmd_l = (cmd << 4)&0xf0; //select lower nibble by moving it to the upper nibble position
 	cmd_u = cmd & 0xf0; //select upper nibble
-	cmd_I2C[0] = cmd_u | (CMD_BYTE_ON & LCDBACKLIGHT); // YYYY-1100 YYYY-led-en-rw-rs ,enable=1 and rs =0
-	cmd_I2C[1] = cmd_u | (CMD_BYTE_OFF & LCDBACKLIGHT); // YYYY-1000 YYYY-led-en-rw-rs ,enable=0 and rs =0
-	cmd_I2C[2] = cmd_l | (CMD_BYTE_ON & LCDBACKLIGHT); // YYYY-1100 YYYY-led-en-rw-rs ,enable=1 and rs =0
-	cmd_I2C[3] = cmd_l | (CMD_BYTE_OFF & LCDBACKLIGHT); // YYYY-1000 YYYY-led-en-rw-rs ,enable=0 and rs =0
+	cmd_I2C[0] = cmd_u | (LCD_CMD_BYTE_ON & _LCDBackLight); // YYYY-1100 YYYY-led-en-rw-rs ,enable=1 and rs =0
+	cmd_I2C[1] = cmd_u | (LCD_CMD_BYTE_OFF & _LCDBackLight); // YYYY-1000 YYYY-led-en-rw-rs ,enable=0 and rs =0
+	cmd_I2C[2] = cmd_l | (LCD_CMD_BYTE_ON & _LCDBackLight); // YYYY-1100 YYYY-led-en-rw-rs ,enable=1 and rs =0
+	cmd_I2C[3] = cmd_l | (LCD_CMD_BYTE_OFF & _LCDBackLight); // YYYY-1000 YYYY-led-en-rw-rs ,enable=0 and rs =0
 	
 	// bcm2835I2CReasonCodes, BCM2835_I2C_REASON_OK 0x00 = Success
 	uint8_t ReasonCodes = bcm2835_i2c_write(cmd_I2C, 4);
 
 	while(ReasonCodes != 0)
 	{
-		if (DEBUGON == true)
+		if (_DebugON == true)
 		{
 			printf("I2C Error bcm2835I2CReasonCodes %d : %d \n", ReasonCodes,txCount++);
 			bcm2835_delay(100);
@@ -87,11 +91,15 @@ void HD44780LCD::PCF8574_LCDClearLine(uint8_t lineNo) {
 		PCF8574_LCDSendCmd(LCD_LINE_ADR1);
 	} else if (lineNo == 2) {
 		PCF8574_LCDSendCmd(LCD_LINE_ADR2);
-	} else {
+	} else if (lineNo == 3) {
+		PCF8574_LCDSendCmd(LCD_LINE_ADR3);
+	}else if (lineNo == 4) {
+		PCF8574_LCDSendCmd(LCD_LINE_ADR4);
+	}else{
 		return;
 	}
 
-	for (uint8_t i = 0; i < 16; i++) {
+	for (uint8_t i = 0; i < _NumCols; i++) {
 		PCF8574_LCDSendData(' ');
 	}
 }
@@ -99,15 +107,30 @@ void HD44780LCD::PCF8574_LCDClearLine(uint8_t lineNo) {
 // Func Desc: Clear screen by writing spaces to every position
 
 void HD44780LCD::PCF8574_LCDClearScreen(void) {
-	PCF8574_LCDClearLine(1);
-	PCF8574_LCDClearLine(2);
+
+if (_NumRows < 1 || _NumRows >4)
+{
+		if (_DebugON == true)
+		{
+			printf("Number of rows invalid must be 1-4 %d \n", _NumRows);
+			return;
+		}
+}
+	if (_NumRows >= 1)
+		PCF8574_LCDClearLine(1);
+	if (_NumRows >= 2)
+		PCF8574_LCDClearLine(2);
+	if (_NumRows >= 3)
+		PCF8574_LCDClearLine(3);
+	if (_NumRows == 4)
+		PCF8574_LCDClearLine(4);
 }
 
 
 // Func Desc: Reset screen 
-// Param1: enum LCD_CURSOR_TYPE_e cursor type, 4 choices
+// Param1: enum LCDCursorType_e cursor type, 4 choices
 
-void HD44780LCD::PCF8574_LCDResetScreen(LCD_CURSOR_TYPE_e CursorType) {
+void HD44780LCD::PCF8574_LCDResetScreen(LCDCursorType_e CursorType) {
 	PCF8574_LCDSendCmd(LCD_MODE_4BIT);
 	PCF8574_LCDSendCmd(LCD_DISPLAY_ON);
 	PCF8574_LCDSendCmd(CursorType);
@@ -126,9 +149,9 @@ void HD44780LCD::PCF8574_LCDDisplayON(bool OnOff) {
 
 
 // Func Desc: Initialise LCD
-// Param1: enum LCD_CURSOR_TYPE_e cursor type, 4 choices. 
+// Param1: enum LCDCursorType_e cursor type, 4 choices. 
 
-void HD44780LCD::PCF8574_LCDInit(LCD_CURSOR_TYPE_e CursorType) {
+void HD44780LCD::PCF8574_LCDInit(LCDCursorType_e CursorType) {
 
 	bcm2835_delay(15);
 	PCF8574_LCDSendCmd(LCD_HOME);
@@ -160,12 +183,12 @@ void HD44780LCD::PCF8574_LCDSendChar(char data) {
 }
 
 // Func Desc: Moves cursor 
-// Param1. enum LCD_DIRECTION_TYPE_e left or right 
+// Param1. enum LCDDirectionType_e left or right 
 // Param2. uint8_t number of spaces to move
 
-void HD44780LCD::PCF8574_LCDMoveCursor(LCD_DIRECTION_TYPE_e direction, uint8_t moveSize) {
+void HD44780LCD::PCF8574_LCDMoveCursor(LCDDirectionType_e direction, uint8_t moveSize) {
 	uint8_t i = 0;
-	if (direction == 1) {
+	if (direction == LCDMoveRight) {
 		for (i = 0; i < moveSize; i++) {
 			PCF8574_LCDSendCmd(LCD_MOV_CURSOR_RIGHT);
 		}
@@ -178,12 +201,12 @@ void HD44780LCD::PCF8574_LCDMoveCursor(LCD_DIRECTION_TYPE_e direction, uint8_t m
 }
 
 // Func Desc: Scrolls screen 
-// Param1. enum LCD_DIRECTION_TYPE_e , left or right 
+// Param1. enum LCDDirectionType_e , left or right 
 // Param2. uint8_t number of spaces to scroll
 
-void HD44780LCD::PCF8574_LCDScroll(LCD_DIRECTION_TYPE_e direction, uint8_t ScrollSize) {
+void HD44780LCD::PCF8574_LCDScroll(LCDDirectionType_e direction, uint8_t ScrollSize) {
 	uint8_t i = 0;
-	if (direction == 1) {
+	if (direction == LCDMoveRight) {
 		for (i = 0; i < ScrollSize; i++) {
 			PCF8574_LCDSendCmd(LCD_SCROLL_RIGHT);
 		}
@@ -195,18 +218,22 @@ void HD44780LCD::PCF8574_LCDScroll(LCD_DIRECTION_TYPE_e direction, uint8_t Scrol
 
 }
 // Func Desc: moves cursor
-// Param1: uint8_t row 1-2 
+// Param1: uint8_t row 1-4 
 // Param2: uint8_t col 0-15
 void HD44780LCD::PCF8574_LCDGOTO(uint8_t row, uint8_t col) {
 	switch (row) {
 		case 1:
 			PCF8574_LCDSendCmd(LCD_LINE_ADR1 | col);
 			break;
-
 		case 2:
 			PCF8574_LCDSendCmd(LCD_LINE_ADR2 | col);
 			break;
-
+		case 3:
+			PCF8574_LCDSendCmd(LCD_LINE_ADR3 | col);
+			break;
+		case 4:
+			PCF8574_LCDSendCmd(LCD_LINE_ADR4 | col);
+			break;
 		default:
 			asm ("nop");
 	}
@@ -228,7 +255,7 @@ void HD44780LCD::PCF8574_LCDCreateCustomChar(uint8_t location, uint8_t * charmap
 // Note: another command must be issued before takes effect.
 void HD44780LCD::PCF8574_LCDBackLightSet(bool OnOff)
 {
-	 OnOff ? (LCDBACKLIGHT = LCD_BACKLIGHTON_MASK) : (LCDBACKLIGHT = LCD_BACKLIGHTOFF_MASK);
+	 OnOff ? (_LCDBackLight= LCD_BACKLIGHTON_MASK) : (_LCDBackLight= LCD_BACKLIGHTOFF_MASK);
 }
 
 // Func Desc: Turn DEBUG mode on 
@@ -236,7 +263,7 @@ void HD44780LCD::PCF8574_LCDBackLightSet(bool OnOff)
 // Note: prints out printf statements, if ON and if errors occur
 void HD44780LCD::PCF8574_DebugSet(bool OnOff)
 {
-	 OnOff ? (DEBUGON  = true) : (DEBUGON  = false);
+	 OnOff ? (_DebugON  = true) : (_DebugON  = false);
 }
 
 // Func Desc: Setup I2C settings 
@@ -246,14 +273,14 @@ void HD44780LCD::PCF8574_LCD_I2C_ON()
 	// to alternate function ALT0, which enables those pins for I2C interface. 
 	if (!bcm2835_i2c_begin())
 	{
-		if (DEBUGON == true)
+		if (_DebugON == true)
 		{
 			printf("LCD Error: Cannot start bcm2835 I2C \n");
 		}
 		return;
 	}
 	//i2c address
-	bcm2835_i2c_setSlaveAddress(LCD_SLAVE_ADDRESS_I2C);  
+	bcm2835_i2c_setSlaveAddress(_LCDSlaveAddresI2C);  
 	
 	// (1) BCM2835_I2C_CLOCK_DIVIDER_626  ：622 = 2.504us = 399.3610 kHz
 	//Clock divided is based on nominal base clock rate of 250MHz
@@ -269,6 +296,20 @@ void HD44780LCD::PCF8574_LCD_I2C_ON()
 void HD44780LCD::PCF8574_LCD_I2C_OFF(void)
 {
 	bcm2835_i2c_end();
+}
+
+// Print out a customer character from CGRAM
+// Param1 CGRAM location 0-7 
+void HD44780LCD::PCF8574_LCDPrintCustomChar(uint8_t location)
+{
+	PCF8574_LCDSendData(location);
+}
+
+// Called by print class, used to print out numerical data types
+size_t HD44780LCD::write(uint8_t c) 
+{
+	PCF8574_LCDSendChar(c) ;
+	return 1;
 }
 
 // **** EOF ****

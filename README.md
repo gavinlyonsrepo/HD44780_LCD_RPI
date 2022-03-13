@@ -19,9 +19,10 @@ Overview
    for the Raspberry PI.
 1. Dynamic install-able system level Raspberry Pi C++ library.
 2. Backlight, Scroll, Cursor control.
-3. Custom character support.
+3. Custom character support + print class for numerical data.
 4. Hardware I2C using bcm2835 library
 5. Dependency: bcm2835 Library
+6. Tested on size 16x02 but may work on other sizes (20x4 8X2 etc)
 
 * Author: Gavin Lyons
 * Developed on 
@@ -45,14 +46,14 @@ Installation
 	* Run following command to download from github.
     
 ```sh
-curl -sL https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/archive/1.0.tar.gz | tar xz
+curl -sL https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/archive/1.1.tar.gz | tar xz
 ```
 
 4. Run "make" to run the makefile in repo base folder to install library, it will be 
     installed to usr/lib and usr/include
     
 ```sh
-cd HD44780_LCD_RPI-1.0
+cd HD44780_LCD_RPI-1.1
 sudo make
 ```
 
@@ -78,8 +79,6 @@ Connections
 
 1. LCD SCLK = SCLK1 I2C pins P1-05 GPIO3
 2. LCD SDA = SDA1 I2C pins P1-03 GPIO2
-3. +5V
-4. GND
 
 Software 
 -------------------------
@@ -87,9 +86,10 @@ Software
 *I2C*
 
 Hardware I2C.
-Settings are in the "PCF8574_LCD_I2C_ON" method.
+Clock rate Settings are in the "PCF8574_LCD_I2C_ON" method.
+Address is passed in constructor main.cpp.
 
-1. I2C LCD Slave Address is set to 0x27(your module could be different).
+1. I2C LCD Slave Address is set to 0x27 by default(your module could be different).
 2. Clock rate is to BCM2835_I2C_CLOCK_DIVIDER_626   
 	This can be increased if necessary to BCM2835_I2C_CLOCK_DIVIDER_148
 	for more faster bus. See [bcm2835 for details](http://www.airspayce.com/mikem/bcm2835/) 
