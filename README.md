@@ -105,5 +105,5 @@ Output
 
 Output  of custom character test in test file.
 
-![ pic ](https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/blob/master/extras/image/custom_output.jpg)
+![ pic ](https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/blob/main/extras/image/custom_output.jpg)
 
