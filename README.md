@@ -9,6 +9,7 @@ Table of contents
   * [Test](#test)
   * [Hardware](#hardware)
   * [Software](#software)
+  * [Output](#output)
 
 Overview
 --------------------
@@ -98,3 +99,11 @@ Address is passed in constructor main.cpp.
 *Debug*
 
 User can turn on debug messages with PCF8574_DebugSet method see example file.
+
+Output
+---------------------
+
+Output  of custom character test in test file.
+
+![ pic ](https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/blob/master/extras/image/custom_output.jpg
+
