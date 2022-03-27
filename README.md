@@ -19,11 +19,11 @@ Overview
 0. Library to support the HD44780 LCD , (I2C PCF8574 "backpack" interface) 
    for the Raspberry PI.
 1. Dynamic install-able system level Raspberry Pi C++ library.
-2. Backlight, Scroll, Cursor control.
+2. Backlight, scroll, cursor and entrymode control.
 3. Custom character support + print class for numerical data.
 4. Hardware I2C using bcm2835 library
 5. Dependency: bcm2835 Library
-6. Tested on size 16x02 but may work on other sizes (20x4 8X2 etc)
+6. Tested on size 16x02 only but may work on other sizes (20x4 , 16X4 etc)
 
 * Author: Gavin Lyons
 * Developed on 
@@ -99,6 +99,7 @@ Address is passed in constructor main.cpp.
 *Debug*
 
 User can turn on debug messages with PCF8574_DebugSet method see example file.
+
 
 Output
 ---------------------

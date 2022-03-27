@@ -1,6 +1,10 @@
 # Gavin lyons 02-2022
 # Makefile to build example program for HD44780_LCD_RPI library.
 # URL: https://github.com/gavinlyonsrepo/HD44780_LCD_RPI
+# Options :
+# 1. make 
+# 2. make clean
+# 3. make run (note :: wraps sudo)
 
 SRC=src/TEST
 CC=g++
@@ -15,6 +19,9 @@ TARGET=$(BIN)/test
 
 all: clean pre-build $(TARGET) 
 
+run:
+	sudo $(TARGET) 
+	
 pre-build:
 	@echo '*******'
 	@echo '[START!]'
