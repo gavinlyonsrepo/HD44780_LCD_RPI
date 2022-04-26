@@ -23,7 +23,7 @@ Overview
 3. Custom character support + print class for numerical data.
 4. Hardware I2C using bcm2835 library
 5. Dependency: bcm2835 Library
-6. Tested on size 16x02 only but may work on other sizes (20x4 , 16X4 etc)
+6. Tested on size 16x02 and 20x04 (but may work on other sizes eg 16x04 , untested)
 
 * Author: Gavin Lyons
 * Developed on 
@@ -47,14 +47,14 @@ Installation
 	* Run following command to download from github.
     
 ```sh
-curl -sL https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/archive/1.1.tar.gz | tar xz
+curl -sL https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/archive/1.2.tar.gz | tar xz
 ```
 
 4. Run "make" to run the makefile in repo base folder to install library, it will be 
     installed to usr/lib and usr/include
     
 ```sh
-cd HD44780_LCD_RPI-1.1
+cd HD44780_LCD_RPI-1.2
 sudo make
 ```
 
