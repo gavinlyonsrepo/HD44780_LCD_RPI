@@ -1,3 +1,4 @@
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/paypalme/whitelight976)
 
 ![ lcd ](https://github.com/gavinlyonsrepo/pic_16F1619_projects/blob/master/images/LCDPCF.jpg)
 
@@ -65,7 +66,7 @@ Test
 Wire up your LCD. Next enter the examples folder and run the makefile in THAT folder, 
 This 2nd makefile builds the example file using the just installed library.
 and creates a test exe file in "bin". Be sure to use "sudo" as the bcm2835 requires root permissions by default [ see here for more details on that](http://www.airspayce.com/mikem/bcm2835/) 
-
+Test file is for 16 rows 2 columns model.
 
 ```sh
 cd examples/
@@ -108,3 +109,6 @@ Output  of custom character test in test file.
 
 ![ pic ](https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/blob/main/extras/image/custom_output.jpg)
 
+20x04 display. 
+
+![ pic2 ](https://github.com/gavinlyonsrepo/HD44780_LCD_PCF8574/blob/main/extras/image/2004.jpg)
