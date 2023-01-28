@@ -12,7 +12,7 @@
 
 #include <bcm2835.h>
 #include <iostream> // for cout error messages
-#include "HD44780_LCD_Print.h"
+#include "HD44780_LCD_Print.hpp"
 
 #ifndef LCD_HD44780_H
 #define LCD_HD44780_H
@@ -86,11 +86,11 @@ typedef enum {
 // Section: Class's
 class HD44780LCD : public Print{ 
   public:
-	HD44780LCD(uint8_t NumRow, uint8_t NumCol, uint8_t I2Caddress);
+	HD44780LCD(uint8_t NumRow, uint8_t NumCol, uint8_t I2Caddress, uint16_t I2Cspeed);
 	~HD44780LCD(){};
 	
 	void PCF8574_LCDInit (LCDCursorType_e);
-	void PCF8574_LCDDisplayON(bool );
+	void PCF8574_LCDDisplayON(bool);
 	void PCF8574_LCDResetScreen(LCDCursorType_e);
 	void PCF8574_LCDBackLightSet(bool);
 	
@@ -121,6 +121,7 @@ class HD44780LCD : public Print{
 	bool _DebugON = false;
 	//I2C  address for I2C module PCF8574 backpack on LCD
 	uint8_t _LCDSlaveAddresI2C = 0x27 ;
+	uint16_t _LCDSpeedI2C = 0x00;
 	uint8_t _NumRowsLCD = 2;
 	uint8_t _NumColsLCD = 16;
 		

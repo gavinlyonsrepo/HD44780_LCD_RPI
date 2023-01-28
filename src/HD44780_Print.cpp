@@ -18,13 +18,14 @@
  
  Modified 23 November 2006 by David A. Mellis
  Modified 03 August 2015 by Chuck Todd
+ Modified 03 August 2022 by Gavin Lyons
  */
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+#include <string>
 #include <math.h>
-#include "HD44780_LCD_Print.h"
+#include "HD44780_LCD_Print.hpp"
 
 // Public Methods 
 
@@ -39,6 +40,13 @@ size_t Print::write(const uint8_t *buffer, size_t size)
   return n;
 }
 
+size_t Print::print(const std::string &s) {
+    return write(s.c_str(), s.length());
+}
+
+size_t Print::println(const std::string &s) {
+    return println(s);
+}
 
 size_t Print::print(const char str[])
 {

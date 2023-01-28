@@ -2,7 +2,7 @@
  * File: main.cpp
  * Description: 
  * This file contains the "main" function for  project, a set of test sequence
- * to test the HD44780 LCD library
+ * to test the HD44780 LCD library (16x02) 16 columns 2 lines 
  * Author: Gavin Lyons.
  * Compiler: C++ g++ (Raspbian 8.3.0-6+rpi1) 8.3.0
  * Tested: Raspbian 10, armv7l Linux 5.10.63-v7+ , RPI M3B Rev 1.2
@@ -21,7 +21,7 @@
 // Section: Included library 
 #include <iostream>
 #include <bcm2835.h>
-#include "HD44780_LCD.h"
+#include "HD44780_LCD.hpp"
 
 // Section: Defines
 #define DISPLAY_DELAY_1 1000
@@ -29,8 +29,8 @@
 #define DISPLAY_DELAY 5000
 
 // Section: Globals
-// myLCD(rows , cols , PCF8574 I2C address)
-HD44780LCD myLCD( 2, 16, 0x27); // instantiate an object
+// myLCD(rows , cols , PCF8574 I2C address, I2C speed)
+HD44780LCD myLCD(2, 16, 0x27, 626); // instantiate an object
 
 // Section: Function Prototypes
 void setup(void);

@@ -11,15 +11,22 @@
  */
 
 // Section : Includes
-#include "HD44780_LCD.h"
+#include "HD44780_LCD.hpp"
 
 // Section : constructor
+// Param 1:: number of rows in LCD
+// Param 2:: number of columns in LCD
+// Param 3:: I2C address 
+// Param 4:: I2C speed default = 0 
+// 0 = //bcm2835_i2c_set_baudrate(100000); //100k baudrate
+// > 0 = BCM2835_I2C_CLOCK_DIVIDER, choices = 2500 , 622 , 150 , 148
 
-HD44780LCD  :: HD44780LCD(uint8_t NumRow, uint8_t NumCol, uint8_t I2Caddress)
+HD44780LCD::HD44780LCD(uint8_t NumRow, uint8_t NumCol, uint8_t I2Caddress, uint16_t I2Cspeed)
 {
-_NumRowsLCD = NumRow;
-_NumColsLCD = NumCol;
-_LCDSlaveAddresI2C  = I2Caddress;
+	_NumRowsLCD = NumRow;
+	_NumColsLCD = NumCol;
+	_LCDSlaveAddresI2C  = I2Caddress;
+	_LCDSpeedI2C = I2Cspeed;
 }
 
 // Section : Functions
@@ -302,15 +309,17 @@ void HD44780LCD::PCF8574_LCD_I2C_ON()
 		}
 		return;
 	}
-	//i2c address
-	bcm2835_i2c_setSlaveAddress(_LCDSlaveAddresI2C);
-
-	// (1) BCM2835_I2C_CLOCK_DIVIDER_626  ：622 = 2.504us = 399.3610 kHz
-	//Clock divided is based on nominal base clock rate of 250MHz
-	bcm2835_i2c_setClockDivider(BCM2835_I2C_CLOCK_DIVIDER_626);
-
-	// (2) or use set_baudrate instead of clockdivder
-	//bcm2835_i2c_set_baudrate(100000); //100k baudrate
+	bcm2835_i2c_setSlaveAddress(_LCDSlaveAddresI2C);  //i2c address
+	
+	if ( _LCDSpeedI2C > 0)  
+	{
+		// BCM2835_I2C_CLOCK_DIVIDER enum choice 2500 622 150 148
+		// Clock divided is based on nominal base clock rate of 250MHz
+		bcm2835_i2c_setClockDivider(_LCDSpeedI2C);
+	} else{
+		// default or use set_baudrate instead of clockdivder 100k
+		bcm2835_i2c_set_baudrate(100000); //100k baudrate
+	}
 }
 
 // Func Desc: End I2C operations.

@@ -48,14 +48,14 @@ Installation
 	* Run following command to download from github.
     
 ```sh
-curl -sL https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/archive/1.2.tar.gz | tar xz
+curl -sL https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/archive/1.3.tar.gz | tar xz
 ```
 
 4. Run "make" to run the makefile in repo base folder to install library, it will be 
     installed to usr/lib and usr/include
     
 ```sh
-cd HD44780_LCD_RPI-1.2
+cd HD44780_LCD_RPI-1.3
 sudo make
 ```
 
@@ -65,14 +65,24 @@ Test
 1. Next step is to test LCD and installed library with the example test file.
 Wire up your LCD. Next enter the examples folder and run the makefile in THAT folder, 
 This 2nd makefile builds the example file using the just installed library.
-and creates a test exe file in "bin". Be sure to use "sudo" as the bcm2835 requires root permissions by default [ see here for more details on that](http://www.airspayce.com/mikem/bcm2835/) 
-Test file is for 16 rows 2 columns model.
+and creates a test exe file in "bin". 
 
 ```sh
 cd examples/
 make
-sudo bin/test
+make run
 ```
+
+2. There are 3 examples files. 
+To decide which one the makefile builds simply edit "SRC" variable at top of the makefile in examples folder.
+in the "User SRC directory Option Section". Pick an example "SRC" directory path and ONE ONLY.
+Comment out the rest and repeat: make & make run.
+
+| Filepath | File Function | Screen Size |
+| ---- | ---- | ---- | 
+| src/TEST_16x02 | Carries out test sequence testing features | 16x02 |
+| src/TEST_20x04 | Carries out test sequence testing features | 20x04 |
+| src/CLOCK_16x02 | A basic clock Demo | 16x02 |
 
 Hardware
 ----------------------------
@@ -88,14 +98,20 @@ Software
 *I2C*
 
 Hardware I2C.
-Clock rate Settings are in the "PCF8574_LCD_I2C_ON" method.
-Address is passed in constructor main.cpp.
+Clock rate Settings and I2C Address is set in the constructor in main.cpp.
 
 1. I2C LCD Slave Address is set to 0x27 by default(your module could be different).
-2. Clock rate is to BCM2835_I2C_CLOCK_DIVIDER_626   
-	This can be increased if necessary to BCM2835_I2C_CLOCK_DIVIDER_148
-	for more faster bus. See [bcm2835 for details](http://www.airspayce.com/mikem/bcm2835/) 
-3. Baudrate method can also be used. 
+2. I2C Clock rate can be a passed into in the constructor as a argument, five possible values : 
+
+| Value | Method | I2C speed | 
+| ---- | ---- | ---- | 
+| 0 (default) | bcm2835_i2c_set_baudrate(100000) | 100Khz | 
+| 2500 | bcm2835_i2c_setClockDivider(BCM2835_I2C_CLOCK_DIVIDER_2500) | 100Khz | 
+| 626 | bcm2835_i2c_setClockDivider(BCM2835_I2C_CLOCK_DIVIDER_626) | 399.4 kHz | 
+| 150 | bcm2835_i2c_setClockDivider(BCM2835_I2C_CLOCK_DIVIDER_150) | 1.666 MHz | 
+| 148 | bcm2835_i2c_setClockDivider(BCM2835_I2C_CLOCK_DIVIDER_148) | 1.689 MHz | 
+
+For more info on bcm2835I2CClockDivider & bcm2835I2CReasonCodes see [bcm2835 doc's for details](http://www.airspayce.com/mikem/bcm2835/group__constants.html)
 
 *Debug*
 

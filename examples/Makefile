@@ -1,15 +1,28 @@
 # Gavin lyons 02-2022
 # Makefile to build example program for HD44780_LCD_RPI library.
 # URL: https://github.com/gavinlyonsrepo/HD44780_LCD_RPI
-# Options :
-# 1. make 
+
+# ********************
+# Options
+# 1. make  
 # 2. make clean
 # 3. make run (note :: wraps sudo)
+# ********************
 
-SRC=src/TEST
+# ************************************************
+# User SRC directory Option Section
+# Pick on example "SRC" dir path and ONE Only.
+# Comment out the other's. 
+
+#SRC=src/TEST_16x02
+SRC=src/TEST_20x04
+#SRC=src/CLOCK_16x02
+
+# ************************************************
+
 CC=g++
 LDFLAGS= -lbcm2835 -lrt -lHD44780_LCD_RPI 
-CFLAGS = -Iinclude/ -c -Wall 
+CFLAGS = -std=c++2a -Iinclude/ -c -Wall 
 MD=mkdir
 OBJ=obj
 SRCS = $(wildcard $(SRC)/*.cpp)
