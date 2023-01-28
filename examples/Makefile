@@ -14,8 +14,8 @@
 # Pick on example "SRC" dir path and ONE Only.
 # Comment out the other's. 
 
-#SRC=src/TEST_16x02
-SRC=src/TEST_20x04
+SRC=src/TEST_16x02
+#SRC=src/TEST_20x04
 #SRC=src/CLOCK_16x02
 
 # ************************************************
