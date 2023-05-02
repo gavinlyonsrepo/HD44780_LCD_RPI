@@ -34,7 +34,7 @@
 
 // Section: Globals
 // myLCD(rows , cols , PCF8574 I2C address, I2C speed)
-HD44780LCD myLCD( 2, 16, 0x27, 626); // instantiate an object
+HD44780LCD myLCD( 2, 16, 0x27, 0); // instantiate an object
 
 // Section: Function Prototypes
 void setup(void);
@@ -72,7 +72,7 @@ void setup(void)
 	std::cout <<  "LCD Begin" << std::endl;  
 	myLCD.PCF8574_LCD_I2C_ON();
 	bcm2835_delay(DISPLAY_DELAY_1);
-	myLCD.PCF8574_LCDInit(LCDCursorTypeOn);
+	myLCD.PCF8574_LCDInit(myLCD.LCDCursorTypeOn);
 	myLCD.PCF8574_LCDClearScreen();
 	myLCD.PCF8574_LCDBackLightSet(true);
 	myLCD.PCF8574_DebugSet(false); // Set to true to turn on debug mode
@@ -83,10 +83,10 @@ void DisplayInfo(void)
 	std::string TimeString = UTC_string();
 	std::cout<< TimeString << "\r" << std::flush;
 	auto timeInfo = TimeString.substr(0, 10);
-	myLCD.PCF8574_LCDGOTO(LCDLineNumberOne, 0);
+	myLCD.PCF8574_LCDGOTO(myLCD.LCDLineNumberOne, 0);
 	myLCD.print(timeInfo);
 	auto DateInfo = TimeString.substr(11);
-	myLCD.PCF8574_LCDGOTO(LCDLineNumberTwo, 0);
+	myLCD.PCF8574_LCDGOTO(myLCD.LCDLineNumberTwo, 0);
 	myLCD.print(DateInfo);
 }
 

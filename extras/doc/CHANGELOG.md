@@ -10,3 +10,6 @@
 	* Added Example file for 20x04 LCD
 	* Added Example file for clock demo see issue one on github
 	* Added ability to change I2C bus speed in the constructor.
+* Version 1.3.1 April 2023
+	* Updates to match Arduino source port 1.3.0
+

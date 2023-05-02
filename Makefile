@@ -2,7 +2,6 @@
 # Makefile to install library for HD44780_LCD library.
 # URL: https://github.com/gavinlyonsrepo/HD44780_LCD_RPI
 # Library is installed to /usr/lib and include files are placed at /usr/include.
-# Uninstall and clean options provided
 
 # ***************************
 # Options
