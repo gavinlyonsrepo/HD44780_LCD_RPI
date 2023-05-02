@@ -51,7 +51,7 @@ Installation
 	* Run following command to download from github.
     
 ```sh
-curl -sL https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/archive/1.3.1 tar.gz | tar xz
+curl -sL https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/archive/1.3.1.tar.gz | tar xz
 ```
 
 4. Run "make" to run the makefile in repo base folder to install library, it will be 
