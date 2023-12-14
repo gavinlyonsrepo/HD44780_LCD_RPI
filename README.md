@@ -11,7 +11,7 @@
   * [Test](#test)
   * [Hardware](#hardware)
   * [Software](#software)
-	* [I2C(#i2c)
+	* [I2C](#i2c)
 	* [Debug](#debug)
 	* [API](#api)
   * [Output](#output)
