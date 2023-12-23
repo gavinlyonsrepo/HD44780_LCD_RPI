@@ -1,25 +1,14 @@
-/*
- * File: main.cpp
- * Description: 
- * This file contains the "main" function for a clock demo (16x02 LCD)
- * to test the HD44780 LCD library, see issue one github
- * Author: Gavin Lyons.
- * Compiler: C++ g++ (Raspbian 8.3.0-6+rpi1) 8.3.0
- * Tested: Raspbian 10, armv7l Linux 5.10.63-v7+ , RPI M3B Rev 1.2
- * Created : Jan 2023
- * Description: See URL for full details.
- * URL: https://github.com/gavinlyonsrepo/HD44780_LCD_RPI
- * 
- * Notes: 
- * 
- * (1) set PCF8574_DebugSet(false) to true in Setup() for debug
- * 
- * (2) For description of entry modes , cursor types, custom characters 
- * and more see here http://dinceraydin.com/lcd/commands.htm
- * 
- * (3) -std=c++2a required in makefile
- * 
- * (4) press ctrl + c to quit
+/*!
+	@file main.cpp
+	@author   Gavin Lyons
+	@brief  This file contains the "main" function for a clock demo (16x02 LCD)
+		to test the HD44780 LCD library, see issue one github
+ 
+	@note 
+	-# set DebugSet(false) to true in Setup() for debug
+	-# For description of entry modes , cursor types, custom characters and more see here http://dinceraydin.com/lcd/commands.htm
+	-# -std=c++2a required in makefile
+	-# press ctrl + c to quit
  */
 
 // Section: Included library 
@@ -34,10 +23,10 @@
 
 // Section: Globals
 // myLCD(rows , cols , PCF8574 I2C address, I2C speed)
-HD44780LCD myLCD( 2, 16, 0x27, 0); // instantiate an object
+HD44780PCF8574LCD myLCD( 2, 16, 0x27, 0); // instantiate an object
 
 // Section: Function Prototypes
-void setup(void);
+bool setup(void);
 void DisplayInfo(void);
 void endTest(void);
 std::string UTC_string(void);
@@ -48,13 +37,8 @@ void signal_callback_handler(int signum);
 int main(int argc, char **argv)
 {
 	signal(SIGINT, signal_callback_handler);
-	if(!bcm2835_init())
-	{
-		std::cout << "Library bcm2835 failed init" << std::endl ;
-		return -1;
-	}
 	
-	setup();
+	if (!setup()) return -1;
 	while(1)
 	{
 		DisplayInfo();
@@ -67,15 +51,38 @@ int main(int argc, char **argv)
 
 // Section :  Functions
 
-void setup(void) 
-{
-	std::cout <<  "LCD Begin" << std::endl;  
-	myLCD.PCF8574_LCD_I2C_ON();
-	bcm2835_delay(DISPLAY_DELAY_1);
-	myLCD.PCF8574_LCDInit(myLCD.LCDCursorTypeOn);
-	myLCD.PCF8574_LCDClearScreen();
-	myLCD.PCF8574_LCDBackLightSet(true);
-	myLCD.PCF8574_DebugSet(false); // Set to true to turn on debug mode
+bool setup(void) {
+	std::cout <<  "LCD Clock Demo Begin" << std::endl;
+	std::cout <<  "Press 'ctrl + c' to quit" << std::endl;
+	// Check if Bcm28235 lib installed and print version.
+	if(!bcm2835_init())
+	{
+		std::cout << "Error 1201: init bcm2835 library , Is it installed ?"  << std::endl;
+		return false;
+	}
+
+	bcm2835_delay(250);
+	
+	// Turn on I2C bus (optionally it may already be on)
+	if (!myLCD.LCD_I2C_ON())
+	{
+		std::cout << "Error 1202: bcm2835_i2c_begin :Cannot start I2C, Running as root?" << std::endl;
+		return false;
+	}
+	
+	myLCD.LCDDebugSet(false); // Set to true to turn on debug mode
+	myLCD.LCD_I2C_SetSpeed();
+	myLCD.LCDInit(myLCD.LCDCursorTypeOn);
+	myLCD.LCDClearScreen();
+	myLCD.LCDBackLightSet(true);
+	
+	// print out library versions & flag status( Note optional)
+	std::cout << "bcm2835 library Version Number :" << bcm2835_version() << std::endl;
+	std::cout << "HD44780_LCD_RPI :"  << myLCD.LCDVerNumGet()  << std::endl;
+	std::cout << "Debug status is : " << (myLCD.LCDDebugGet() ? "On" : "Off") << std::endl ;
+	std::cout <<  "Backlight status is : " << (myLCD.LCDBackLightGet() ? "On" : "Off")<< std::endl ;
+	
+	return true;
 }
 
 void DisplayInfo(void) 
@@ -83,21 +90,21 @@ void DisplayInfo(void)
 	std::string TimeString = UTC_string();
 	std::cout<< TimeString << "\r" << std::flush;
 	auto timeInfo = TimeString.substr(0, 10);
-	myLCD.PCF8574_LCDGOTO(myLCD.LCDLineNumberOne, 0);
-	myLCD.print(timeInfo);
 	auto DateInfo = TimeString.substr(11);
-	myLCD.PCF8574_LCDGOTO(myLCD.LCDLineNumberTwo, 0);
+	myLCD.LCDGOTO(myLCD.LCDLineNumberOne, 0);
+	myLCD.print(timeInfo);
+	myLCD.LCDGOTO(myLCD.LCDLineNumberTwo, 0);
 	myLCD.print(DateInfo);
 }
 
 
 void endTest()
 {
-	myLCD.PCF8574_LCDDisplayON(false); //Switch off display
-	myLCD.PCF8574_LCD_I2C_OFF();
+	myLCD.LCDDisplayON(false); //Switch off display
+	myLCD.LCD_I2C_OFF();
 	bcm2835_close(); // Close the library
 	std::cout << std::endl;
-	std::cout << "LCD End" << std::endl ;
+	std::cout << "LCD Clock Demo End" << std::endl ;
 }
 
 //Return UTC time as a std:.string with format "yyyy-mm-dd hh:mm:ss".

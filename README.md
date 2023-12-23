@@ -32,18 +32,18 @@
 6. Tested on size 16x02 and 20x04 (but may work on other sizes eg 16x04 , untested)
 
 * Author: Gavin Lyons
-* Developed on 
+* Development Tool chain. 
 	1. Raspberry PI 3 model b
 	2. C++, g++ (Raspbian 8.3.0-6+rpi1) 8.3.0
-	3. Raspbian 10  stretch OS, armv7l Linux 5.10.63-v7+ 
-	4. bcm2835 Library 1.68 
+	3. Raspbian 10 Buster  OS, armv7l Linux 5.10.63-v7+ , 32 bit.
+	4. bcm2835 Library 1.73 (dependency)
 
 
 ## Installation
 
 1. Make sure I2C bus is enabled on your raspberry PI
 
-2. Install the dependency bcm2835 Library if not installed (at time of writing latest version is 1.68.)
+2. Install the dependency bcm2835 Library if not installed (at time of writing latest version is 1.73.)
 	* The bcm2835 library is a dependency and provides low level I2C bus, delays and GPIO control.
 	* Install the C libraries of bcm2835, [Installation instructions here](http://www.airspayce.com/mikem/bcm2835/)
 
@@ -52,15 +52,16 @@
 	* Run following command to download from github.
     
 ```sh
-curl -sL https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/archive/1.3.1.tar.gz | tar xz
+curl -sL https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/archive/1.3.2.tar.gz | tar xz
 ```
 
 4. Run "make" to run the makefile in repo base folder to install library, it will be 
     installed to usr/lib and usr/include
     
 ```sh
-cd HD44780_LCD_RPI-1.3.1
-sudo make
+cd HD44780_LCD_RPI-1.3.2
+make
+sudo make install
 ```
 
 ## Test 
@@ -76,13 +77,14 @@ make
 make run
 ```
 
-2. There are 3 examples files. 
+2. There are 4 examples files. 
 To decide which one the makefile builds simply edit "SRC" variable at top of the makefile in examples folder.
 in the "User SRC directory Option Section". Pick an example "SRC" directory path and ONE ONLY.
 Comment out the rest and repeat: make & make run.
 
 | Filepath | File Function | Screen Size |
 | ---- | ---- | ---- | 
+| src/HELLO_16x02 | Hello world basic use case | 16x02 |
 | src/TEST_16x02 | Carries out test sequence testing features | 16x02 |
 | src/TEST_20x04 | Carries out test sequence testing features | 20x04 |
 | src/CLOCK_16x02 | A basic clock Demo | 16x02 |
@@ -99,24 +101,32 @@ Connections
 ### I2C
 
 Hardware I2C.
-Clock rate Settings and I2C Address is set in the constructor in main.cpp.
 
-1. I2C LCD Slave Address is set to 0x27 by default(your module could be different).
-2. I2C Clock rate can be a passed into in the constructor as a argument, five possible values : 
+1. I2C Address is set by default to 0x27(your module could be different, 
+user can change argument passed into LCD class constructor).
 
-| Value | Method | I2C speed | 
-| ---- | ---- | ---- | 
-| 0 (default) | bcm2835_i2c_set_baudrate(100000) | 100Khz | 
-| 2500 | bcm2835_i2c_setClockDivider(BCM2835_I2C_CLOCK_DIVIDER_2500) | 100Khz | 
-| 626 | bcm2835_i2c_setClockDivider(BCM2835_I2C_CLOCK_DIVIDER_626) | 399.4 kHz | 
-| 150 | bcm2835_i2c_setClockDivider(BCM2835_I2C_CLOCK_DIVIDER_150) | 1.666 MHz | 
-| 148 | bcm2835_i2c_setClockDivider(BCM2835_I2C_CLOCK_DIVIDER_148) | 1.689 MHz | 
+2. I2C Clock rate can be a passed into in the LCD class constructor method as a argument, five possible values : 
+If you send 0 (the default) It sets it to 100KHz and uses bcm2835_i2c_set_baudrate to do so.
+Alternatively you can pass 1 of 4 BCM2835_I2C_CLOCK_DIVIDER values 2500, 626 150 or 148.
+See image below.
+
+3. In the event of an error writing a byte, debug info with error code will be written to console. 
+This error code is the bcm2835I2CReasonCodes enum. Debug flag must be set to true to see this output.
+See image below for  bcm2835I2CReasonCodes. 
+
+4. If you have multiple devices on I2C bus at different clock speeds.
+The I2C clock speed function may have to called before each tranche of LCD commands.
+and not just at start. 
+
+![ bcm ](https://github.com/gavinlyonsrepo/SSD1306_OLED_RPI/blob/main/extras/image/bcm.jpg)
+
+
 
 For more info on bcm2835I2CClockDivider & bcm2835I2CReasonCodes see [bcm2835 doc's for details](http://www.airspayce.com/mikem/bcm2835/group__constants.html)
 
 ### Debug
 
-User can turn on debug messages with PCF8574_DebugSet method see example file.
+User can turn on debug messages with LCDDebugSet method see example file.
 
 ### API
 

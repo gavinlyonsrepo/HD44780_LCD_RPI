@@ -12,4 +12,11 @@
 	* Added ability to change I2C bus speed in the constructor.
 * Version 1.3.1 April 2023
 	* Updates to match Arduino source port 1.3.0
+* Version 1.3.2 Dec 2023 
+	* Refactored I2C control to give user greater control
+	and visibility over bus
+	* Added version number and more debug messages. 
+	* Minor various optimizations
+	* Changed Makefile so it will compile on 64 bit OS 
+	* Added Hello world example
 

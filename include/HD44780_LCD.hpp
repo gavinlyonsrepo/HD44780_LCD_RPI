@@ -13,15 +13,11 @@
 #include <iostream> // for cout error messages
 #include "HD44780_LCD_Print.hpp"
 
-#ifndef __LCD_HD44780_H__
-#define __LCD_HD44780_H__
+#pragma once
 
-
-// Section: Constants
-const uint8_t LCD_I2C_ADDRESS = 0x27;  /**< I2C  address for I2C module PCF8574 backpack on LCD */
 
 // Section: Class's
-class HD44780LCD : public Print{ 
+class HD44780PCF8574LCD : public Print{ 
   public:
 	// public enums
 
@@ -61,40 +57,44 @@ class HD44780LCD : public Print{
 		LCDLineNumberFour = 4  /**<  row 4 */
 	}; 
 	
-	HD44780LCD(uint8_t NumRow, uint8_t NumCol, uint8_t I2Caddress, uint16_t I2Cspeed);
-	~HD44780LCD(){};
 	
-	void PCF8574_LCDInit (LCDCursorType_e);
-	void PCF8574_LCDDisplayON(bool);
-	void PCF8574_LCDResetScreen(LCDCursorType_e);
+	HD44780PCF8574LCD(uint8_t NumRow, uint8_t NumCol, uint8_t I2Caddress, uint16_t I2Cspeed);
+	~HD44780PCF8574LCD(){};
 	
-	void PCF8574_LCDBackLightSet(bool);
-	bool PCF8574_LCDBackLightGet(void);
+	void LCDInit(LCDCursorType_e);
+	void LCDDisplayON(bool);
+	void LCDResetScreen(LCDCursorType_e);
 	
-	void PCF8574_DebugSet(bool);
-	bool PCF8574_DebugGet(void);
+	void LCDBackLightSet(bool);
+	bool LCDBackLightGet(void);
 	
-	void PCF8574_LCD_I2C_OFF(void);
-	void PCF8574_LCD_I2C_ON(void);
+	void LCDDebugSet(bool);
+	bool LCDDebugGet(void);
 	
-	void PCF8574_LCDSendString (char *str);
-	void PCF8574_LCDSendChar (char data);
+	int16_t LCDVerNumGet(void);
+	
+	bool LCD_I2C_ON(void);
+	void LCD_I2C_SetSpeed(void);
+	void LCD_I2C_OFF(void);
+	
+	void LCDSendString (char *str);
+	void LCDSendChar (char data);
 	virtual size_t write(uint8_t);
-	void PCF8574_LCDCreateCustomChar(uint8_t location, uint8_t* charmap);
-	void PCF8574_LCDPrintCustomChar(uint8_t location);
+	void LCDCreateCustomChar(uint8_t location, uint8_t* charmap);
+	void LCDPrintCustomChar(uint8_t location);
 	
-	void PCF8574_LCDMoveCursor(LCDDirectionType_e, uint8_t moveSize);
-	void PCF8574_LCDScroll(LCDDirectionType_e, uint8_t ScrollSize);
-	void PCF8574_LCDGOTO(LCDLineNumber_e  lineNo, uint8_t  col);
-	void PCF8574_LCDClearLine (LCDLineNumber_e lineNo);
-	void PCF8574_LCDClearScreen(void);
-	void PCF8574_LCDClearScreenCmd(void);
-	void PCF8574_LCDHome(void);
-	void PCF8574_LCDChangeEntryMode(LCDEntryMode_e mode);
+	void LCDMoveCursor(LCDDirectionType_e, uint8_t moveSize);
+	void LCDScroll(LCDDirectionType_e, uint8_t ScrollSize);
+	void LCDGOTO(LCDLineNumber_e  lineNo, uint8_t  col);
+	void LCDClearLine (LCDLineNumber_e lineNo);
+	void LCDClearScreen(void);
+	void LCDClearScreenCmd(void);
+	void LCDHome(void);
+	void LCDChangeEntryMode(LCDEntryMode_e mode);
 
   private:
-	void PCF8574_LCDSendCmd (unsigned char cmd);
-	void PCF8574_LCDSendData (unsigned char data);
+	void LCDSendCmd (unsigned char cmd);
+	void LCDSendData (unsigned char data);
 	
 	// Private Enums
 	/*!  DDRAM address's used to set cursor position  Note Private */
@@ -109,21 +109,25 @@ class HD44780LCD : public Print{
 
 	/*!  Command Bytes General  Note Private */
 	enum LCDCmdBytesGeneral_e : uint8_t {
-		LCDModeFourBit = 0x28, /**< Function set (4-bit interface, 2 lines, 5*7 Pixels) */
-		LCDHomePosition  = 0x02, /**< Home (move cursor to top/left character position) */
-		LCDDisplayOn = 0x0C,  /**< Restore the display (with cursor hidden) */
-		LCDDisplayOff = 0x08, /**< Blank the display (without clearing) */
-		LCDClearScreen = 0x01 /**< clear screen */
+		LCDCmdModeFourBit = 0x28, /**< Function set (4-bit interface, 2 lines, 5*7 Pixels) */
+		LCDCmdHomePosition  = 0x02, /**< Home (move cursor to top/left character position) */
+		LCDCmdDisplayOn = 0x0C,  /**< Restore the display (with cursor hidden) */
+		LCDCmdDisplayOff = 0x08, /**< Blank the display (without clearing) */
+		LCDCmdClearScreen = 0x01 /**< clear screen command byte*/
 	};
 	
 	enum  LCDBackLight_e _LCDBackLight= LCDBackLightOnMask;  /**< Enum to store backlight status*/
 	
-	bool _DebugON = false;
-	uint8_t _LCDSlaveAddresI2C = LCD_I2C_ADDRESS ; /**< I2C  address for I2C module PCF8574 backpack on LCD*/
-	uint16_t _LCDSpeedI2C = 0x00;
-	uint8_t _NumRowsLCD = 2;
-	uint8_t _NumColsLCD = 16;
-		
-  }; // end of HD44780LCD class
+	
+	const int16_t _LibVersionNum = 132; /**< library version number */
+	bool _DebugON = false;  /**< debug flag , if true error messages will be printed to console */
+	
+	const uint8_t LCD_I2C_ADDRESS = 0x27;  /**< Default I2C address for I2C module PCF8574 backpack on LCD */
+	uint8_t _LCDSlaveAddresI2C = LCD_I2C_ADDRESS ; /**< I2C address for I2C module PCF8574 backpack on LCD*/
+	uint16_t _LCDSpeedI2C = 0x00; /**< I2C speed default 0(100K) or BCM2835_I2C_CLOCK_DIVIDER enum values */ 
+	uint8_t _NumRowsLCD = 2; /**< number of rows on LCD*/
+	uint8_t _NumColsLCD = 16; /**< number of columns on LCD*/
 
-#endif // guard header ending 
+		
+  }; // end of HD44780PCF8574LCD class
+
