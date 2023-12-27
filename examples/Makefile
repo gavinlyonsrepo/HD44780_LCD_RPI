@@ -18,6 +18,7 @@ SRC=src/HELLO_16x02
 #SRC=src/TEST_16x02
 #SRC=src/TEST_20x04
 #SRC=src/CLOCK_16x02
+#SRC=src/TEST_I2C_16x02
 
 # ************************************************
 

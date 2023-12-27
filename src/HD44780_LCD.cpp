@@ -46,8 +46,8 @@ void HD44780PCF8574LCD::LCDSendData(unsigned char data) {
 	const  uint8_t LCDDataByteOff = 0x09; // enable=0 and rs =1 1001 DATA-led-en-rw-rs
 	
 	unsigned char dataNibbleLower, dataNibbleUpper;
-	char dataBufferI2C[4];;
-	uint8_t attemptI2Cwrite = 0;
+	char dataBufferI2C[4];
+	uint8_t attemptI2Cwrite = 3;
 	
 	dataNibbleLower = (data << 4)&0xf0; //select lower nibble by moving it to the upper nibble position
 	dataNibbleUpper = data & 0xf0; //select upper nibble
@@ -57,7 +57,7 @@ void HD44780PCF8574LCD::LCDSendData(unsigned char data) {
 	dataBufferI2C[3] = dataNibbleLower | (LCDDataByteOff &  _LCDBackLight); //enable=0 and rs =1 1001 YYYY-X-en-X-rs
 
 	// bcm2835I2CReasonCodes , BCM2835_I2C_REASON_OK 0x00 = Success
-	uint8_t ReasonCodes = bcm2835_i2c_write(dataBufferI2C, 4);
+	uint8_t  ReasonCodes = bcm2835_i2c_write(dataBufferI2C, 4);
 
 	// Error handling retransmit
 	while(ReasonCodes != 0)
@@ -65,14 +65,15 @@ void HD44780PCF8574LCD::LCDSendData(unsigned char data) {
 		if (_DebugON == true)
 		{
 			std::cout << "Error 601 I2C  Data bcm2835I2CReasonCodes : " << +ReasonCodes << std::endl;
-			std::cout << "Attempt : " << +attemptI2Cwrite << std::endl;
-			attemptI2Cwrite++;
-			bcm2835_delay(100);
+			std::cout << "Attempt Count: " << +attemptI2Cwrite << std::endl;
 		}
+		bcm2835_delay(_I2C_ErrorDelay );
 		ReasonCodes = bcm2835_i2c_write(dataBufferI2C, 4); // retransmit
-		bcm2835_delay(25);
-		if (attemptI2Cwrite >= 3) break;
+		_I2C_Error = ReasonCodes;
+		attemptI2Cwrite--;
+		if (attemptI2Cwrite == 0) break;
 	}
+	_I2C_Error = ReasonCodes;
 }
 
 /*!
@@ -88,9 +89,10 @@ void HD44780PCF8574LCD::LCDSendCmd(unsigned char cmd) {
 	const uint8_t LCDCmdByteOn = 0x0C;  // enable=1 and rs =0 1100 COMD-led-en-rw-rs 
 	const uint8_t LCDCmdByteOff = 0x08; // enable=0 and rs =0 1000 COMD-led-en-rw-rs 
 	
+
 	unsigned char cmdNibbleLower, cmdNibbleUpper;
 	char cmdBufferI2C[4];
-	uint8_t attemptI2Cwrite = 0;
+	uint8_t attemptI2Cwrite = 3;
 	
 	cmdNibbleLower = (cmd << 4)&0xf0; //select lower nibble by moving it to the upper nibble position
 	cmdNibbleUpper = cmd & 0xf0; //select upper nibble
@@ -101,20 +103,20 @@ void HD44780PCF8574LCD::LCDSendCmd(unsigned char cmd) {
 
 	// bcm2835I2CReasonCodes, BCM2835_I2C_REASON_OK 0x00 = Success
 	uint8_t ReasonCodes = bcm2835_i2c_write(cmdBufferI2C, 4);
-
 	while(ReasonCodes != 0)
 	{
 		if (_DebugON == true)
 		{
 			std::cout << "Error 602: I2C Command bcm2835I2CReasonCodes : " << +ReasonCodes << std::endl;
-			std::cout << "Attempt : " << +attemptI2Cwrite << std::endl;
-			bcm2835_delay(100);
-			attemptI2Cwrite++;
+			std::cout << "Attempt Count : " << +attemptI2Cwrite << std::endl;
 		}
-		ReasonCodes = bcm2835_i2c_write(cmdBufferI2C, 4); // retransmit
-		bcm2835_delay(25);
-		if (attemptI2Cwrite >= 3) break;
+		bcm2835_delay(_I2C_ErrorDelay);
+		ReasonCodes = bcm2835_i2c_write(cmdBufferI2C,4); // retransmit
+		_I2C_Error = ReasonCodes;
+		attemptI2Cwrite--;
+		if (attemptI2Cwrite == 0) break;
 	}
+	_I2C_Error = ReasonCodes;
 }
 
 /*!
@@ -462,7 +464,7 @@ void HD44780PCF8574LCD::LCDChangeEntryMode(LCDEntryMode_e newEntryMode)
 
 /*!
 	 @brief Turn DEBUG mode on or off setter
-	 @param passed bool True = debug on , false = debug off
+	 @param OnOff passed bool True = debug on , false = debug off
 	 @note prints out statements, if ON and if errors occur
 */
 void HD44780PCF8574LCD::LCDDebugSet(bool OnOff)
@@ -481,6 +483,47 @@ bool HD44780PCF8574LCD::LCDDebugGet(void) { return _DebugON;}
 	 @return library version number eg 132 = 1.3.2
 */
 int16_t  HD44780PCF8574LCD::LCDVerNumGet(void){return _LibVersionNum;}
+
+
+/*!
+	 @brief get I2C error Flag
+	 @return I2C error flag = 0x00 no error , > 0 bcm2835I2Creasoncode.
+*/
+bool HD44780PCF8574LCD::LCDI2CErrorGet(void) { return _I2C_Error;}
+
+/*!
+	 @brief Sets the I2C timeout in the event of an I2C write error
+	 @param newTimeOut I2C timeout delay in mS
+*/
+void HD44780PCF8574LCD::LCDI2CErrorTimeoutSet(uint16_t newTimeout)
+{
+	_I2C_ErrorDelay = newTimeout;
+}
+
+/*!
+	 @brief Sets the I2C timeout in the event of an I2C write error
+	 @return  I2C timeout delay in mS, _I2C_ErrorDelay
+*/
+uint16_t HD44780PCF8574LCD::LCDI2CErrorTimeoutGet(void)
+{
+	return _I2C_ErrorDelay;
+}
+
+/*! 
+	@brief checks if LCD on I2C bus
+	@return bcm2835I2CReasonCodes , BCM2835_I2C_REASON_OK 0x00 = Success
+*/ 
+int16_t HD44780PCF8574LCD::LCDCheckConnection(void)
+{
+	int16_t returnValue;
+	char rxdata[1]; //buffer to hold return byte
+	
+	bcm2835_i2c_setSlaveAddress(_LCDSlaveAddresI2C);  // set i2c address
+	returnValue = bcm2835_i2c_read(rxdata, 1); // returns reason code , 0 success
+
+	_I2C_Error = returnValue;
+	return returnValue;
+}
 
 
 // **** EOF ****

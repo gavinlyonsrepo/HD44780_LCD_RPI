@@ -76,6 +76,10 @@ class HD44780PCF8574LCD : public Print{
 	bool LCD_I2C_ON(void);
 	void LCD_I2C_SetSpeed(void);
 	void LCD_I2C_OFF(void);
+	int16_t LCDCheckConnection(void);
+	bool LCDI2CErrorGet(void);
+	uint16_t LCDI2CErrorTimeoutGet(void);
+	void LCDI2CErrorTimeoutSet(uint16_t);
 	
 	void LCDSendString (char *str);
 	void LCDSendChar (char data);
@@ -125,6 +129,9 @@ class HD44780PCF8574LCD : public Print{
 	const uint8_t LCD_I2C_ADDRESS = 0x27;  /**< Default I2C address for I2C module PCF8574 backpack on LCD */
 	uint8_t _LCDSlaveAddresI2C = LCD_I2C_ADDRESS ; /**< I2C address for I2C module PCF8574 backpack on LCD*/
 	uint16_t _LCDSpeedI2C = 0x00; /**< I2C speed default 0(100K) or BCM2835_I2C_CLOCK_DIVIDER enum values */ 
+	uint16_t _I2C_ErrorDelay = 100; /**<I2C delay in event of error in mS*/
+	uint16_t _I2C_Error = 0; /**< In event of I2C error holds bcm2835 I2C reason code */
+	
 	uint8_t _NumRowsLCD = 2; /**< number of rows on LCD*/
 	uint8_t _NumColsLCD = 16; /**< number of columns on LCD*/
 
