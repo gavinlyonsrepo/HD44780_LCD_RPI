@@ -36,8 +36,8 @@
 	1. Raspberry PI 3 model b
 	2. C++, g++ (Debian 12.2.0) 
 	3. Raspbian , Debian 12 bookworm OS, , 64 bit.
-	3. kernel : aarch64 Linux 6.1.0-rpi7-rpi-v8
-	4. bcm2835 Library 1.73 dependency. Provides low level I2C bus, delays and GPIO control.
+	4. kernel : aarch64 Linux 6.1.0-rpi7-rpi-v8
+	5. bcm2835 Library 1.73 dependency. Provides low level I2C bus, delays and GPIO control.
 
 
 ## Installation
