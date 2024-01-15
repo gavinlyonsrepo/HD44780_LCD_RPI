@@ -15,7 +15,7 @@
 	* [Debug](#debug)
 	* [API](#api)
   * [Output](#output)
-  * [Notes](#notes)
+  * [Notes and issues](#notes-and-issues)
   
 ## Overview
 
@@ -37,13 +37,13 @@
 	2. C++, g++ (Debian 12.2.0) 
 	3. Raspbian , Debian 12 bookworm OS, , 64 bit.
 	4. kernel : aarch64 Linux 6.1.0-rpi7-rpi-v8
-	5. bcm2835 Library 1.73 dependency. Provides low level I2C bus, delays and GPIO control.
+	5. bcm2835 Library 1.71 dependency. Provides low level I2C bus, delays and GPIO control.
 
 
 ## Installation
 
 
-1. Install the dependency bcm2835 Library if not installed (at time of writing latest version is 1.73.)
+1. Install the dependency bcm2835 Library if not installed( see notes about issue 1.73)
 	* Install the C libraries of bcm2835, [Installation instructions here](http://www.airspayce.com/mikem/bcm2835/)
 
 2. Download the HD44780_LCD_RPI library 
@@ -145,9 +145,14 @@ Output  of custom character test in test file.
 
 ![ pic2 ](https://github.com/gavinlyonsrepo/HD44780_LCD_PCF8574/blob/main/extras/image/2004.jpg)
 
-## Notes
+## Notes and issues
 
-For detailed graphical description of entry modes , cursor types, custom characters 
+
+1. If you upgrade to V 1.73 of the bcm2835 dependancy (the latest at time  of writing ) you may see Intermittant 
+BCM2835_I2C_REASON_ERROR_TIMEOUT  [errors on I2C write operations](https://groups.google.com/g/bcm2835/c/45O8Y_5yv00). Best stay on 1.71 until a new upgrade is released.
+ 
+
+2. For detailed graphical description of entry modes , cursor types, custom characters 
 and more see here [link](http://dinceraydin.com/lcd/commands.htm)
 
-16X04 board not tested but should work
+3. 16X04 board not tested but should work
