@@ -19,4 +19,8 @@
 	* Minor various optimizations
 	* Changed Makefile so it will compile on 64 bit OS 
 	* Added Hello world example
-
+* Version 1.3.3 Jan 2024
+	* Minor update
+	* Changed default I2C speed to deal with latest bcm2835 release v1.73 problems: Intermittent 
+	timeout errors on 100K, 
+	* Added user ability to set I2C error timeout and number of retries attempts.

@@ -29,7 +29,7 @@
 
 // Section: Globals
 // myLCD(rows , cols , PCF8574 I2C address, I2C speed)
-HD44780PCF8574LCD myLCD(2, 16, 0x27, 0); // instantiate an object
+HD44780PCF8574LCD myLCD(2, 16, 0x27, BCM2835_I2C_CLOCK_DIVIDER_626); // instantiate an object
 
 // Section: Function Prototypes
 bool setup(void);
@@ -50,7 +50,6 @@ void endTest(void);
 int main(int argc, char **argv)
 {
 	if (!setup()) return -1;
-	
 	helloWorld();
 	cursorMoveTest();
 	scrollTest();
@@ -79,12 +78,13 @@ bool setup(void) {
 		return false;
 	}
 
-	bcm2835_delay(250);
+	bcm2835_delay(500);
 	
 	// Turn on I2C bus (optionally it may already be on)
 	if (!myLCD.LCD_I2C_ON())
 	{
 		std::cout << "Error 1202: bcm2835_i2c_begin :Cannot start I2C, Running as root?" << std::endl;
+		bcm2835_close(); // Close the library
 		return false;
 	}
 	
@@ -100,7 +100,6 @@ bool setup(void) {
 	std::cout << "HD44780_LCD_RPI lib Version Num :"  << myLCD.LCDVerNumGet() << std::endl;
 	std::cout << "Debug status is : " << (myLCD.LCDDebugGet() ? "On" : "Off") << std::endl ;
 	std::cout <<  "Backlight status is : " << (myLCD.LCDBackLightGet() ? "On" : "Off") << std::endl ;
-	
 	return true;
 }
 

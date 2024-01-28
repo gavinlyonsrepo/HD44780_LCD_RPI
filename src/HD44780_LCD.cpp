@@ -2,11 +2,7 @@
 	@file     HD44780_LCD.cpp
 	@author   Gavin Lyons
 	@brief    HD44780-based character LCD I2C(PCF8574) source header file for RPI
-	
-	@note 
-	-# Compiler: C++ g++ (Raspbian 8.3.0-6+rpi1) 8.3.0
-	-# Tested: Raspbian 10, armv7l Linux 5.10.63-v7+ , RPI M3B Rev 1.2
-	-# URL: https://github.com/gavinlyonsrepo/HD44780_LCD_RPI
+	@details  URL: https://github.com/gavinlyonsrepo/HD44780_LCD_RPI
 */
 
 // Section : Includes
@@ -17,10 +13,14 @@
 	@param NumRow number of rows in LCD
 	@param NumCol number of columns in LCD
 	@param I2Caddress  The PCF8574 I2C address, default is 0x27.
-	@param I2Cspeed I2C Bus Clock speed in KHz. Default 0 : See Note
-	@note     0 = //bcm2835_i2c_set_baudrate(100000); 100k baudrate
-			> 0 = BCM2835_I2C_CLOCK_DIVIDER, choices = 2500 , 622 , 150 , 148
-			* 
+	@param I2Cspeed I2C Bus Clock speed in KHz. Default BCM2835_I2C_CLOCK_DIVIDER_626 
+	@details 
+		-# = 0  //bcm2835_i2c_set_baudrate(100000); 100k baudrate
+		-# > 0  BCM2835_I2C_CLOCK_DIVIDER, choices = 2500 , 622 , 150 , 148
+		-# BCM2835_I2C_CLOCK_DIVIDER_2500   = 2500, 2500 = 10us = 100 kHz 
+		-# BCM2835_I2C_CLOCK_DIVIDER_626    = 626,  626 = 2.504us = 399.3610 kHz 
+		-# BCM2835_I2C_CLOCK_DIVIDER_150    = 150, 150 = 60ns = 1.666 MHz (default at reset) 
+		-# BCM2835_I2C_CLOCK_DIVIDER_148    = 148 148 = 59ns = 1.689 MHz
 */
 HD44780PCF8574LCD::HD44780PCF8574LCD(uint8_t NumRow, uint8_t NumCol, uint8_t I2Caddress, uint16_t I2Cspeed)
 {
@@ -47,7 +47,7 @@ void HD44780PCF8574LCD::LCDSendData(unsigned char data) {
 	
 	unsigned char dataNibbleLower, dataNibbleUpper;
 	char dataBufferI2C[4];
-	uint8_t attemptI2Cwrite = 3;
+	uint8_t AttemptCount = _I2C_ErrorRetryNum;
 	
 	dataNibbleLower = (data << 4)&0xf0; //select lower nibble by moving it to the upper nibble position
 	dataNibbleUpper = data & 0xf0; //select upper nibble
@@ -65,15 +65,15 @@ void HD44780PCF8574LCD::LCDSendData(unsigned char data) {
 		if (_DebugON == true)
 		{
 			std::cout << "Error 601 I2C  Data bcm2835I2CReasonCodes : " << +ReasonCodes << std::endl;
-			std::cout << "Attempt Count: " << +attemptI2Cwrite << std::endl;
+			std::cout << "Attempt Count: " << +AttemptCount << std::endl;
 		}
 		bcm2835_delay(_I2C_ErrorDelay );
 		ReasonCodes = bcm2835_i2c_write(dataBufferI2C, 4); // retransmit
-		_I2C_Error = ReasonCodes;
-		attemptI2Cwrite--;
-		if (attemptI2Cwrite == 0) break;
+		_I2C_ErrorFlag = ReasonCodes;
+		AttemptCount--;
+		if (AttemptCount == 0) break;
 	}
-	_I2C_Error = ReasonCodes;
+	_I2C_ErrorFlag = ReasonCodes;
 }
 
 /*!
@@ -92,7 +92,7 @@ void HD44780PCF8574LCD::LCDSendCmd(unsigned char cmd) {
 
 	unsigned char cmdNibbleLower, cmdNibbleUpper;
 	char cmdBufferI2C[4];
-	uint8_t attemptI2Cwrite = 3;
+	uint8_t AttemptCount = _I2C_ErrorRetryNum;
 	
 	cmdNibbleLower = (cmd << 4)&0xf0; //select lower nibble by moving it to the upper nibble position
 	cmdNibbleUpper = cmd & 0xf0; //select upper nibble
@@ -108,15 +108,15 @@ void HD44780PCF8574LCD::LCDSendCmd(unsigned char cmd) {
 		if (_DebugON == true)
 		{
 			std::cout << "Error 602: I2C Command bcm2835I2CReasonCodes : " << +ReasonCodes << std::endl;
-			std::cout << "Attempt Count : " << +attemptI2Cwrite << std::endl;
+			std::cout << "Attempt Count : " << +AttemptCount<< std::endl;
 		}
 		bcm2835_delay(_I2C_ErrorDelay);
 		ReasonCodes = bcm2835_i2c_write(cmdBufferI2C,4); // retransmit
-		_I2C_Error = ReasonCodes;
-		attemptI2Cwrite--;
-		if (attemptI2Cwrite == 0) break;
+		_I2C_ErrorFlag = ReasonCodes;
+		AttemptCount--;
+		if (AttemptCount== 0) break;
 	}
-	_I2C_Error = ReasonCodes;
+	_I2C_ErrorFlag = ReasonCodes;
 }
 
 /*!
@@ -388,10 +388,10 @@ void HD44780PCF8574LCD::LCD_I2C_SetSpeed()
 				// default or use set_baudrate instead of clockdivder 100k if zero passed
 				bcm2835_i2c_set_baudrate(I2CBaudRate); 
 			break;
-			case 2500: 
-			case 622:
-			case 150:
-			case 148:
+			case BCM2835_I2C_CLOCK_DIVIDER_2500:// ~100K
+			case BCM2835_I2C_CLOCK_DIVIDER_626: // ~400k
+			case BCM2835_I2C_CLOCK_DIVIDER_150:
+			case BCM2835_I2C_CLOCK_DIVIDER_148:
 				bcm2835_i2c_setClockDivider(_LCDSpeedI2C);
 			break;
 			default:
@@ -399,7 +399,7 @@ void HD44780PCF8574LCD::LCD_I2C_SetSpeed()
 				if (_DebugON == true)
 				{
 					std::cout << "Warning 610: Invalid BCM2835_I2C_CLOCK_DIVIDER value : " << _LCDSpeedI2C<< std::endl;
-					std::cout << "	Must be 2500 622 150 or 148 " <<  std::endl;
+					std::cout << "	Must be 2500 626 150 or 148 " <<  std::endl;
 					std::cout << "	Setting I2C baudrate to 100K with bcm2835_i2c_set_baudrate: " <<  std::endl;
 				}
 				bcm2835_i2c_set_baudrate(I2CBaudRate); 
@@ -486,13 +486,20 @@ int16_t  HD44780PCF8574LCD::LCDVerNumGet(void){return _LibVersionNum;}
 
 
 /*!
-	 @brief get I2C error Flag
+	@brief get I2C error Flag
+	@details bcm2835I2Creasoncode.
+		-# BCM2835_I2C_REASON_OK   	     = 0x00,Success 
+		-# BCM2835_I2C_REASON_ERROR_NACK    = 0x01,Received a NACK 
+		-# BCM2835_I2C_REASON_ERROR_CLKT    = 0x02,Received Clock Stretch Timeout 
+		-# BCM2835_I2C_REASON_ERROR_DATA    = 0x04, Not all data is sent / receive
+		-# BCM2835_I2C_REASON_ERROR_TIMEOUT = 0x08 Time out occurred during sending 
 	 @return I2C error flag = 0x00 no error , > 0 bcm2835I2Creasoncode.
 */
-bool HD44780PCF8574LCD::LCDI2CErrorGet(void) { return _I2C_Error;}
+uint8_t HD44780PCF8574LCD::LCDI2CErrorGet(void) { return _I2C_ErrorFlag;}
 
 /*!
-	 @brief Sets the I2C timeout in the event of an I2C write error
+	 @brief Sets the I2C timeout, in the event of an I2C write error
+	 @details Delay between retry attempts in event of an error , mS
 	 @param newTimeOut I2C timeout delay in mS
 */
 void HD44780PCF8574LCD::LCDI2CErrorTimeoutSet(uint16_t newTimeout)
@@ -501,28 +508,42 @@ void HD44780PCF8574LCD::LCDI2CErrorTimeoutSet(uint16_t newTimeout)
 }
 
 /*!
-	 @brief Sets the I2C timeout in the event of an I2C write error
+	 @brief Gets the I2C timeout, used in the event of an I2C write error
+	 @details Delay between retry attempts in event of an error , mS
 	 @return  I2C timeout delay in mS, _I2C_ErrorDelay
 */
-uint16_t HD44780PCF8574LCD::LCDI2CErrorTimeoutGet(void)
+uint16_t HD44780PCF8574LCD::LCDI2CErrorTimeoutGet(void){return _I2C_ErrorDelay;}
+
+/*!
+	 @brief Gets the I2C error retry attempts, used in the event of an I2C write error
+	 @details Number of times to retry in event of an error
+	 @return   _I2C_ErrorRetryNum
+*/
+uint8_t HD44780PCF8574LCD::LCDI2CErrorRetryNumGet(void){return _I2C_ErrorRetryNum;}
+
+/*!
+	 @brief Sets the I2C error retry attempts used in the event of an I2C write error
+	 @details Number of times to retry in event of an error
+	 @param AttemptCount I2C retry attempts 
+*/
+void HD44780PCF8574LCD::LCDI2CErrorRetryNumSet(uint8_t AttemptCount)
 {
-	return _I2C_ErrorDelay;
+	_I2C_ErrorRetryNum = AttemptCount;
 }
+
 
 /*! 
 	@brief checks if LCD on I2C bus
 	@return bcm2835I2CReasonCodes , BCM2835_I2C_REASON_OK 0x00 = Success
 */ 
-int16_t HD44780PCF8574LCD::LCDCheckConnection(void)
+uint8_t HD44780PCF8574LCD::LCDCheckConnection(void)
 {
-	int16_t returnValue;
 	char rxdata[1]; //buffer to hold return byte
 	
 	bcm2835_i2c_setSlaveAddress(_LCDSlaveAddresI2C);  // set i2c address
-	returnValue = bcm2835_i2c_read(rxdata, 1); // returns reason code , 0 success
+	_I2C_ErrorFlag = bcm2835_i2c_read(rxdata, 1); // returns reason code , 0 success
 
-	_I2C_Error = returnValue;
-	return returnValue;
+	return _I2C_ErrorFlag;
 }
 
 

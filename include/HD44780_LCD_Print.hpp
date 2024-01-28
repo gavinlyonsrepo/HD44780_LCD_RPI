@@ -1,15 +1,16 @@
 /*!
-	@file     SSD1306_OLED_Print.hpp
-	@brief    Base class that provides print() and println() for SSD1306_OLED_RPI library
+	@file     HD44780_Print.hpp
+	@brief    Base class that provides print() and println() for HD44780_LCD library
 	@note  Port of arduino built-in print class, G Lyons 2022.
 */
 
  
 #pragma once
 
-#include <inttypes.h>
-#include <stdio.h> // for size_t
-#include <cstring> // for strlen
+#include <cinttypes>
+#include <cstdio> // for size_t
+#include <cstring>
+#include <cmath>
 #include <string>
 
 #define PGM_P const char*

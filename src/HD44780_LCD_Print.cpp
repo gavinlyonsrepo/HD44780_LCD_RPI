@@ -1,13 +1,9 @@
 /*!
-	@file     SSD1306_OLED_Print.cpp
+	@file     HD44780_LCD_Print.cpp
 	@brief   Base class that provides print() and println() for SSD1306_OLEDRPI library
 	@note  Port of arduino built-in print class, G Lyons 2022.
 */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string>
-#include <math.h>
 #include "HD44780_LCD_Print.hpp"
 
 // Public Methods 
@@ -102,8 +98,8 @@ size_t Print::printFloat(double number, uint8_t digits)
 { 
   size_t n = 0;
   
-  if (isnan(number)) return print("nan");
-  if (isinf(number)) return print("inf");
+  if (std::isnan(number)) return print("nan");
+  if (std::isinf(number)) return print("inf");
   if (number > 4294967040.0) return print ("ovf");  // constant determined empirically
   if (number <-4294967040.0) return print ("ovf");  // constant determined empirically
   

@@ -43,7 +43,7 @@
 ## Installation
 
 
-1. Install the dependency bcm2835 Library if not installed( see notes about issue 1.73)
+1. Install the dependency bcm2835 Library if not installed.
 	* Install the C libraries of bcm2835, [Installation instructions here](http://www.airspayce.com/mikem/bcm2835/)
 
 2. Download the HD44780_LCD_RPI library 
@@ -51,14 +51,14 @@
 	* Run following command to download from github.
     
 ```sh
-curl -sL https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/archive/1.3.2.tar.gz | tar xz
+curl -sL https://github.com/gavinlyonsrepo/HD44780_LCD_RPI/archive/1.3.3.tar.gz | tar xz
 ```
 
 3. Run "make" to run the makefile in repo base folder to install library, it will be 
     installed to usr/lib and usr/include
     
 ```sh
-cd HD44780_LCD_RPI-1.3.2
+cd HD44780_LCD_RPI-1.3.3
 make
 sudo make install
 ```
@@ -105,14 +105,14 @@ Hardware I2C.
 1. I2C Address is set by default to 0x27(your module could be different, 
 user can change argument passed into LCD class constructor).
 
-2. I2C Clock rate can be a passed into in the LCD class constructor method as a argument, five possible values : 
-If you send 0 (the default) It sets it to 100KHz and uses bcm2835_i2c_set_baudrate to do so.
-Alternatively you can pass 1 of 4 BCM2835_I2C_CLOCK_DIVIDER values 2500, 626 150 or 148.
+2. I2C Clock rate can be a passed into in the LCD class constructor method as a argument, 
+User can pass 1 of 4 BCM2835_I2C_CLOCK_DIVIDER values 2500, 626 150 or 148.
 See image below.
 
 3. In the event of an error writing a byte, debug info with error code will be written to console. 
 This error code is the bcm2835I2CReasonCodes enum. Debug flag must be set to true to see this output.
-See image below for  bcm2835I2CReasonCodes. 
+See image below for  bcm2835I2CReasonCodes. User can set error timeout between retry attempts and number of retry attempts 
+and can monitor the Error flag to see current bcm2835I2CReasonCodes.
 
 4. If you have multiple devices on I2C bus at different clock speeds.
 The I2C clock speed function may have to called before each tranche of LCD commands.
@@ -148,9 +148,11 @@ Output  of custom character test in test file.
 ## Notes and issues
 
 
-1. If you upgrade to V 1.73 of the bcm2835 dependancy (the latest at time  of writing ) you may see Intermittant 
-BCM2835_I2C_REASON_ERROR_TIMEOUT  [errors on I2C write operations](https://groups.google.com/g/bcm2835/c/45O8Y_5yv00). Best stay on 1.71 until a new upgrade is released.
- 
+1. If you upgrade to V 1.73 of the bcm2835 dependancy (the latest at time  of writing Jan 2024) you may see Intermittant 
+BCM2835_I2C_REASON_ERROR_TIMEOUT. This timeout error was introduced in that release.
+Best stay on 1.71 until a new upgrade is released or run at BCM2835_I2C_CLOCK_DIVIDER_626 I saw zero errors at this I2C clock rate.
+It was only present at BCM2835_I2C_CLOCK_DIVIDER_2500(100K).
+
 
 2. For detailed graphical description of entry modes , cursor types, custom characters 
 and more see here [link](http://dinceraydin.com/lcd/commands.htm)

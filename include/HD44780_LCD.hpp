@@ -2,11 +2,7 @@
 	@file     HD44780_LCD.hpp
 	@author   Gavin Lyons
 	@brief    HD44780-based character LCD I2C(PCF8574)library header file for RPI
-	
-	@note 
-	-# Compiler: C++ g++ (Raspbian 8.3.0-6+rpi1) 8.3.0
-	-# Tested: Raspbian 10, armv7l Linux 5.10.63-v7+ , RPI M3B Rev 1.2
-	-# URL: https://github.com/gavinlyonsrepo/HD44780_LCD_RPI
+	@details  URL: https://github.com/gavinlyonsrepo/HD44780_LCD_RPI
 */
 
 #include <bcm2835.h>
@@ -68,19 +64,20 @@ class HD44780PCF8574LCD : public Print{
 	void LCDBackLightSet(bool);
 	bool LCDBackLightGet(void);
 	
-	void LCDDebugSet(bool);
-	bool LCDDebugGet(void);
-	
 	int16_t LCDVerNumGet(void);
 	
 	bool LCD_I2C_ON(void);
 	void LCD_I2C_SetSpeed(void);
 	void LCD_I2C_OFF(void);
-	int16_t LCDCheckConnection(void);
-	bool LCDI2CErrorGet(void);
+	uint8_t LCDCheckConnection(void);
+	uint8_t LCDI2CErrorGet(void);
 	uint16_t LCDI2CErrorTimeoutGet(void);
 	void LCDI2CErrorTimeoutSet(uint16_t);
-	
+	uint8_t LCDI2CErrorRetryNumGet(void);
+	void LCDI2CErrorRetryNumSet(uint8_t);
+	bool LCDDebugGet(void);
+	void LCDDebugSet(bool);
+
 	void LCDSendString (char *str);
 	void LCDSendChar (char data);
 	virtual size_t write(uint8_t);
@@ -123,14 +120,15 @@ class HD44780PCF8574LCD : public Print{
 	enum  LCDBackLight_e _LCDBackLight= LCDBackLightOnMask;  /**< Enum to store backlight status*/
 	
 	
-	const int16_t _LibVersionNum = 132; /**< library version number */
+	const int16_t _LibVersionNum = 133; /**< library version number */
 	bool _DebugON = false;  /**< debug flag , if true error messages will be printed to console */
 	
 	const uint8_t LCD_I2C_ADDRESS = 0x27;  /**< Default I2C address for I2C module PCF8574 backpack on LCD */
 	uint8_t _LCDSlaveAddresI2C = LCD_I2C_ADDRESS ; /**< I2C address for I2C module PCF8574 backpack on LCD*/
-	uint16_t _LCDSpeedI2C = 0x00; /**< I2C speed default 0(100K) or BCM2835_I2C_CLOCK_DIVIDER enum values */ 
-	uint16_t _I2C_ErrorDelay = 100; /**<I2C delay in event of error in mS*/
-	uint16_t _I2C_Error = 0; /**< In event of I2C error holds bcm2835 I2C reason code */
+	uint16_t  _LCDSpeedI2C = BCM2835_I2C_CLOCK_DIVIDER_626 ; /**< I2C speed default 0(100K) or BCM2835_I2C_CLOCK_DIVIDER enum values */ 
+	uint16_t _I2C_ErrorDelay = 100; /**<I2C delay(in between retry attempts) in event of error in mS*/
+	uint8_t _I2C_ErrorRetryNum = 3; /**< In event of I2C error number of retry attempts*/
+	uint8_t _I2C_ErrorFlag = 0; /**< In event of I2C error holds bcm2835 I2C reason code 0x00 = success*/
 	
 	uint8_t _NumRowsLCD = 2; /**< number of rows on LCD*/
 	uint8_t _NumColsLCD = 16; /**< number of columns on LCD*/

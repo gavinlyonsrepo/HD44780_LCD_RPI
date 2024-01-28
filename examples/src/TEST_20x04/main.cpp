@@ -29,7 +29,7 @@
 
 // Section: Globals
 // myLCD(rows , cols , PCF8574 I2C address, I2C speed)
-HD44780PCF8574LCD myLCD( 4, 20, 0x27, 0); // instantiate an object
+HD44780PCF8574LCD myLCD( 4, 20, 0x27, BCM2835_I2C_CLOCK_DIVIDER_626); // instantiate an object
 
 // Section: Function Prototypes
 bool setup(void);
@@ -81,10 +81,11 @@ bool setup(void) {
 
 	bcm2835_delay(250);
 	
-	// Turn on I2C bus (optionally it may already be on)
+	// Turn on I2C bus (optional, it may already be on)
 	if (!myLCD.LCD_I2C_ON())
 	{
 		std::cout << "Error 1202: bcm2835_i2c_begin :Cannot start I2C, Running as root?" << std::endl;
+		bcm2835_close(); // Close the library
 		return false;
 	}
 	
