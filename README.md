@@ -7,10 +7,12 @@
 ## Table of contents
 
   * [Overview](#overview)
+  * [See Also](#see-also)
   * [Installation](#installation)
   * [Test](#test)
   * [Hardware](#hardware)
   * [Software](#software)
+	* [Tool chain](#tool-chain)
 	* [I2C](#i2c)
 	* [Debug](#debug)
 	* [API](#api)
@@ -31,14 +33,10 @@
 5. Dependency: bcm2835 Library
 6. Tested on size 16x02 and 20x04 (but may work on other sizes eg 16x04 , untested)
 
-* Author: Gavin Lyons
-* Development Tool chain. 
-	1. Raspberry PI 3 model b
-	2. C++, g++ (Debian 12.2.0) 
-	3. Raspbian , Debian 12 bookworm OS, , 64 bit.
-	4. kernel : aarch64 Linux 6.1.0-rpi7-rpi-v8
-	5. bcm2835 Library 1.74 dependency. Provides low level I2C bus, delays and GPIO control.
+## See Also
 
+The HD44780_LCD_RPI library has been amalgamated into my combined display library ['Display_Lib_RPI.'](https://github.com/gavinlyonsrepo/Display_Lib_RPI)
+This new library is under active development and should work on any Linux based single board computer.
 
 ## Installation
 
@@ -97,6 +95,15 @@ Connections
 2. LCD SDA = SDA1 I2C pins P1-03 GPIO2
 
 ## Software 
+
+### Tool chain
+ 
+	1. Raspberry PI 3 model b
+	2. C++, g++ (Debian 12.2.0) 
+	3. Raspbian , Debian 12 bookworm OS, , 64 bit.
+	4. kernel : aarch64 Linux 6.1.0-rpi7-rpi-v8
+	5. [bcm2835 Library 1.71 dependency](http://www.airspayce.com/mikem/bcm2835/). 
+		Provides low level SPI bus, delays and GPIO control.
 
 ### I2C
 
